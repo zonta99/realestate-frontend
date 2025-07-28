@@ -52,9 +52,9 @@ import {Role} from '../../core/auth/models';
         <mat-card-content>
           <div class="role-info">
             <mat-chip-set>
-              <mat-chip [class]="getRoleClass(currentUser()?.role || '')">
-                <mat-icon>{{ getRoleIcon(currentUser()?.role || '') }}</mat-icon>
-                {{ getRoleDisplayName(currentUser()?.role || '') }}
+              <mat-chip [class]="getRoleClass(currentUser()?.roles || [])">
+                <mat-icon>{{ getRoleIcon(currentUser()?.roles || []) }}</mat-icon>
+                {{ getRoleDisplayName(currentUser()?.roles || []) }}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -398,6 +398,14 @@ export class Profile {
   private authFacade = inject(AuthFacadeService);
   private snackBar = inject(MatSnackBar);
 
+  // Role hierarchy (highest to lowest)
+  private readonly roleHierarchy = [
+    Role.ADMIN,
+    Role.BROKER,
+    Role.AGENT,
+    Role.ASSISTANT
+  ];
+
   // Signals for password visibility
   hideCurrentPassword = signal(true);
   hideNewPassword = signal(true);
@@ -447,6 +455,25 @@ export class Profile {
     }
   }
 
+  /**
+   * Gets the highest role from an array of roles based on hierarchy
+   */
+  private getHighestRole(roles: Role[]): Role {
+    if (!roles || roles.length === 0) {
+      return Role.ASSISTANT; // Default to lowest role
+    }
+
+    // Find the role with the highest priority (lowest index in hierarchy)
+    for (const hierarchyRole of this.roleHierarchy) {
+      if (roles.includes(hierarchyRole)) {
+        return hierarchyRole;
+      }
+    }
+
+    // If no matching role found, return the first role or default
+    return roles[0] || Role.ASSISTANT;
+  }
+
   passwordMatchValidator(group: FormGroup) {
     const newPassword = group.get('newPassword')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
@@ -465,12 +492,14 @@ export class Profile {
     this.hideConfirmPassword.update(value => !value);
   }
 
-  getRoleClass(role: string): string {
-    return role.toLowerCase();
+  getRoleClass(roles: Role[]): string {
+    const highestRole = this.getHighestRole(roles);
+    return highestRole.replace('ROLE_', '').toLowerCase();
   }
 
-  getRoleIcon(role: string): string {
-    switch (role) {
+  getRoleIcon(roles: Role[]): string {
+    const highestRole = this.getHighestRole(roles);
+    switch (highestRole) {
       case Role.ADMIN: return 'admin_panel_settings';
       case Role.BROKER: return 'business';
       case Role.AGENT: return 'person';
@@ -479,13 +508,14 @@ export class Profile {
     }
   }
 
-  getRoleDisplayName(role: string): string {
-    switch (role) {
+  getRoleDisplayName(roles: Role[]): string {
+    const highestRole = this.getHighestRole(roles);
+    switch (highestRole) {
       case Role.ADMIN: return 'Administrator';
       case Role.BROKER: return 'Broker';
       case Role.AGENT: return 'Agent';
       case Role.ASSISTANT: return 'Assistant';
-      default: return role;
+      default: return 'User';
     }
   }
 
