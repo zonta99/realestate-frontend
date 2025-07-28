@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { map, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { selectUserRole, selectIsAuthenticated } from '../store';
+import { selectUserRoles, selectIsAuthenticated } from '../store';
 import { Role } from '../models';
 
 export const createRoleGuard = (allowedRoles: Role[]): CanActivateFn => {
@@ -19,9 +19,9 @@ export const createRoleGuard = (allowedRoles: Role[]): CanActivateFn => {
           return false;
         }
 
-        const userRole = store.selectSignal(selectUserRole)();
+        const userRoles = store.selectSignal(selectUserRoles)();
 
-        if (!userRole || !allowedRoles.includes(userRole)) {
+        if (!userRoles || userRoles.length === 0 || !userRoles.some(role => allowedRoles.includes(role))) {
           router.navigate(['/unauthorized']);
           return false;
         }

@@ -26,7 +26,7 @@ export const authReducer = createReducer(
     isLoggingIn: false,
     error: null,
     lastActivity: new Date(),
-    ...calculateRolePermissions(response.user.role),
+    ...calculateRolePermissions(response.user.roles),
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
@@ -67,7 +67,7 @@ export const authReducer = createReducer(
     tokens,
     isLoading: false,
     lastActivity: new Date(),
-    ...calculateRolePermissions(user.role),
+    ...calculateRolePermissions(user.roles),
   })),
 
   on(AuthActions.autoLoginFailure, (state) => ({
@@ -104,7 +104,7 @@ export const authReducer = createReducer(
     ...state,
     currentUser: user,
     isLoading: false,
-    ...calculateRolePermissions(user.role),
+    ...calculateRolePermissions(user.roles),
   })),
 
   on(AuthActions.loadUserProfileFailure, (state, { error }) => ({
@@ -162,7 +162,37 @@ export const authReducer = createReducer(
 );
 
 // Helper function to calculate role-based permissions
-function calculateRolePermissions(role: Role) {
+function calculateRolePermissions(roles: Role[]) {
+  if (!roles || roles.length === 0) {
+    return {
+      canManageUsers: false,
+      canCreateProperties: false,
+      canViewAllProperties: false,
+      canManageCustomers: false,
+    };
+  }
+
+  // Start with no permissions and combine permissions from all roles
+  let permissions = {
+    canManageUsers: false,
+    canCreateProperties: false,
+    canViewAllProperties: false,
+    canManageCustomers: false,
+  };
+
+  roles.forEach(role => {
+    const rolePermissions = getSingleRolePermissions(role);
+    permissions.canManageUsers = permissions.canManageUsers || rolePermissions.canManageUsers;
+    permissions.canCreateProperties = permissions.canCreateProperties || rolePermissions.canCreateProperties;
+    permissions.canViewAllProperties = permissions.canViewAllProperties || rolePermissions.canViewAllProperties;
+    permissions.canManageCustomers = permissions.canManageCustomers || rolePermissions.canManageCustomers;
+  });
+
+  return permissions;
+}
+
+// Helper function to get permissions for a single role
+function getSingleRolePermissions(role: Role) {
   switch (role) {
     case Role.ADMIN:
       return {

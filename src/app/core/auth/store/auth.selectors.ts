@@ -53,9 +53,9 @@ export const selectUserFullName = createSelector(
   (user) => user ? `${user.firstName} ${user.lastName}` : ''
 );
 
-export const selectUserRole = createSelector(
+export const selectUserRoles = createSelector(
   selectCurrentUser,
-  (user) => user?.role
+  (user) => user?.roles || []
 );
 
 export const selectUserInitials = createSelector(
@@ -99,28 +99,28 @@ export const selectCanManageCustomers = createSelector(
 
 // Advanced role checks
 export const selectIsAdmin = createSelector(
-  selectUserRole,
-  (role) => role === Role.ADMIN
+  selectUserRoles,
+  (roles) => roles.includes(Role.ADMIN)
 );
 
 export const selectIsBroker = createSelector(
-  selectUserRole,
-  (role) => role === Role.BROKER
+  selectUserRoles,
+  (roles) => roles.includes(Role.BROKER)
 );
 
 export const selectIsAgent = createSelector(
-  selectUserRole,
-  (role) => role === Role.AGENT
+  selectUserRoles,
+  (roles) => roles.includes(Role.AGENT)
 );
 
 export const selectIsAssistant = createSelector(
-  selectUserRole,
-  (role) => role === Role.ASSISTANT
+  selectUserRoles,
+  (roles) => roles.includes(Role.ASSISTANT)
 );
 
 export const selectIsSupervisor = createSelector(
-  selectUserRole,
-  (role) => role === Role.ADMIN || role === Role.BROKER
+  selectUserRoles,
+  (roles) => roles.includes(Role.ADMIN) || roles.includes(Role.BROKER)
 );
 
 // Session management selectors
@@ -156,12 +156,13 @@ export const selectUserDisplayInfo = createSelector(
   selectCurrentUser,
   selectUserFullName,
   selectUserInitials,
-  (user, fullName, initials) => ({
+  selectUserRoles,
+  (user, fullName, initials, roles) => ({
     user,
     fullName,
     initials,
     email: user?.email || '',
-    role: user?.role || '',
+    roles: roles,
   })
 );
 

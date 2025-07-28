@@ -55,7 +55,7 @@ import { AuthFacadeService } from './core/auth/services/auth-facade';
     }
   `]
 })
-export class AppComponent implements OnInit {
+export class App implements OnInit {
   private authFacade = inject(AuthFacadeService);
 
   // Check if app is loading (during auth check)

@@ -1,9 +1,9 @@
 // src/app/core/auth/models/user.model.ts
 export enum Role {
-  ADMIN = 'ADMIN',
-  BROKER = 'BROKER',
-  AGENT = 'AGENT',
-  ASSISTANT = 'ASSISTANT'
+  ADMIN = 'ROLE_ADMIN',
+  BROKER = 'ROLE_BROKER',
+  AGENT = 'ROLE_AGENT',
+  ASSISTANT = 'ROLE_ASSISTANT'
 }
 
 export enum UserStatus {
@@ -17,7 +17,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: Role;
+  roles: Role[];
   status: UserStatus;
   createdDate: string;
   updatedDate: string;
