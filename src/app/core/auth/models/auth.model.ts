@@ -1,5 +1,5 @@
 // src/app/core/auth/models/auth.model.ts
-import {User} from './user.model';
+import { User } from './user.model';
 
 export interface LoginRequest {
   username: string;
@@ -21,4 +21,11 @@ export interface AuthTokens {
 export interface Permission {
   resource: string;
   actions: string[];
+}
+
+// NEW: Add refresh token response interface
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt: Date;
 }

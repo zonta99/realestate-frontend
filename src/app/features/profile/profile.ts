@@ -13,8 +13,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import {AuthFacadeService} from '../../core/auth/services/auth-facade';
-import {Role} from '../../core/auth/models';
+import { AuthFacadeService } from '../../core/auth/services/auth-facade';
 
 @Component({
   selector: 'app-profile',
@@ -52,9 +51,9 @@ import {Role} from '../../core/auth/models';
         <mat-card-content>
           <div class="role-info">
             <mat-chip-set>
-              <mat-chip [class]="getRoleClass(currentUser()?.roles || [])">
-                <mat-icon>{{ getRoleIcon(currentUser()?.roles || []) }}</mat-icon>
-                {{ getRoleDisplayName(currentUser()?.roles || []) }}
+              <mat-chip [class]="getRoleClass()">
+                <mat-icon>{{ getRoleIcon() }}</mat-icon>
+                {{ getRoleDisplayName() }}
               </mat-chip>
             </mat-chip-set>
           </div>
@@ -398,25 +397,23 @@ export class Profile {
   private authFacade = inject(AuthFacadeService);
   private snackBar = inject(MatSnackBar);
 
-  // Role hierarchy (highest to lowest)
-  private readonly roleHierarchy = [
-    Role.ADMIN,
-    Role.BROKER,
-    Role.AGENT,
-    Role.ASSISTANT
-  ];
-
   // Signals for password visibility
   hideCurrentPassword = signal(true);
   hideNewPassword = signal(true);
   hideConfirmPassword = signal(true);
 
-  // Auth state
+  // Auth state - using the facade's signals
   currentUser = this.authFacade.currentUser;
   userDisplayInfo = this.authFacade.userDisplayInfo;
   isLoading = this.authFacade.isLoading;
   hasSubordinates = this.authFacade.hasSubordinates;
   subordinateCount = computed(() => this.authFacade.userCapabilities().subordinateCount);
+
+  // Role check signals from facade
+  isAdmin = this.authFacade.isAdmin;
+  isBroker = this.authFacade.isBroker;
+  isAgent = this.authFacade.isAgent;
+  isAssistant = this.authFacade.isAssistant;
 
   // Profile form
   profileForm: FormGroup = this.fb.group({
@@ -455,25 +452,6 @@ export class Profile {
     }
   }
 
-  /**
-   * Gets the highest role from an array of roles based on hierarchy
-   */
-  private getHighestRole(roles: Role[]): Role {
-    if (!roles || roles.length === 0) {
-      return Role.ASSISTANT; // Default to lowest role
-    }
-
-    // Find the role with the highest priority (lowest index in hierarchy)
-    for (const hierarchyRole of this.roleHierarchy) {
-      if (roles.includes(hierarchyRole)) {
-        return hierarchyRole;
-      }
-    }
-
-    // If no matching role found, return the first role or default
-    return roles[0] || Role.ASSISTANT;
-  }
-
   passwordMatchValidator(group: FormGroup) {
     const newPassword = group.get('newPassword')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
@@ -492,31 +470,29 @@ export class Profile {
     this.hideConfirmPassword.update(value => !value);
   }
 
-  getRoleClass(roles: Role[]): string {
-    const highestRole = this.getHighestRole(roles);
-    return highestRole.replace('ROLE_', '').toLowerCase();
+  // UPDATED: Simplified role methods using AuthFacade signals
+  getRoleClass(): string {
+    if (this.isAdmin()) return 'admin';
+    if (this.isBroker()) return 'broker';
+    if (this.isAgent()) return 'agent';
+    if (this.isAssistant()) return 'assistant';
+    return 'assistant'; // default
   }
 
-  getRoleIcon(roles: Role[]): string {
-    const highestRole = this.getHighestRole(roles);
-    switch (highestRole) {
-      case Role.ADMIN: return 'admin_panel_settings';
-      case Role.BROKER: return 'business';
-      case Role.AGENT: return 'person';
-      case Role.ASSISTANT: return 'support_agent';
-      default: return 'person';
-    }
+  getRoleIcon(): string {
+    if (this.isAdmin()) return 'admin_panel_settings';
+    if (this.isBroker()) return 'business';
+    if (this.isAgent()) return 'person';
+    if (this.isAssistant()) return 'support_agent';
+    return 'person'; // default
   }
 
-  getRoleDisplayName(roles: Role[]): string {
-    const highestRole = this.getHighestRole(roles);
-    switch (highestRole) {
-      case Role.ADMIN: return 'Administrator';
-      case Role.BROKER: return 'Broker';
-      case Role.AGENT: return 'Agent';
-      case Role.ASSISTANT: return 'Assistant';
-      default: return 'User';
-    }
+  getRoleDisplayName(): string {
+    if (this.isAdmin()) return 'Administrator';
+    if (this.isBroker()) return 'Broker';
+    if (this.isAgent()) return 'Agent';
+    if (this.isAssistant()) return 'Assistant';
+    return 'User'; // default
   }
 
   onSaveProfile(): void {

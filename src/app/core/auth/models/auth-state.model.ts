@@ -1,6 +1,6 @@
 // src/app/core/auth/models/auth-state.model.ts
-import {User} from './user.model';
-import {AuthTokens, Permission} from './auth.model';
+import { User } from './user.model';
+import { AuthTokens, Permission } from './auth.model';
 
 export interface AuthState {
   // User session

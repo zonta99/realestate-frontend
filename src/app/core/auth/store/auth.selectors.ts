@@ -1,6 +1,6 @@
 // src/app/core/auth/store/auth.selectors.ts
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { AuthState, Role } from '../models';
+import { AuthState, Role, UserHelper } from '../models';
 
 // Feature selector
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
@@ -47,10 +47,10 @@ export const selectIsRefreshingToken = createSelector(
   (state) => state.isRefreshingToken
 );
 
-// User info selectors
+// UPDATED: User info selectors - now use UserHelper
 export const selectUserFullName = createSelector(
   selectCurrentUser,
-  (user) => user ? `${user.firstName} ${user.lastName}` : ''
+  (user) => user ? UserHelper.getFullName(user) : ''
 );
 
 export const selectUserRoles = createSelector(
@@ -60,9 +60,13 @@ export const selectUserRoles = createSelector(
 
 export const selectUserInitials = createSelector(
   selectCurrentUser,
-  (user) => user
-    ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
-    : ''
+  (user) => user ? UserHelper.getInitials(user) : ''
+);
+
+// NEW: Get display roles (without ROLE_ prefix)
+export const selectUserDisplayRoles = createSelector(
+  selectCurrentUser,
+  (user) => user ? UserHelper.getDisplayRoles(user) : []
 );
 
 // Permission selectors
@@ -97,30 +101,36 @@ export const selectCanManageCustomers = createSelector(
   (state) => state.canManageCustomers
 );
 
-// Advanced role checks
+// UPDATED: Advanced role checks - now use UserHelper
 export const selectIsAdmin = createSelector(
-  selectUserRoles,
-  (roles) => roles.includes(Role.ADMIN)
+  selectCurrentUser,
+  (user) => user ? UserHelper.isAdmin(user) : false
 );
 
 export const selectIsBroker = createSelector(
-  selectUserRoles,
-  (roles) => roles.includes(Role.BROKER)
+  selectCurrentUser,
+  (user) => user ? UserHelper.isBroker(user) : false
 );
 
 export const selectIsAgent = createSelector(
-  selectUserRoles,
-  (roles) => roles.includes(Role.AGENT)
+  selectCurrentUser,
+  (user) => user ? UserHelper.isAgent(user) : false
 );
 
 export const selectIsAssistant = createSelector(
-  selectUserRoles,
-  (roles) => roles.includes(Role.ASSISTANT)
+  selectCurrentUser,
+  (user) => user ? UserHelper.isAssistant(user) : false
 );
 
 export const selectIsSupervisor = createSelector(
-  selectUserRoles,
-  (roles) => roles.includes(Role.ADMIN) || roles.includes(Role.BROKER)
+  selectCurrentUser,
+  (user) => user ? UserHelper.isSupervisor(user) : false
+);
+
+// NEW: User status selector
+export const selectIsUserActive = createSelector(
+  selectCurrentUser,
+  (user) => user ? UserHelper.isActive(user) : false
 );
 
 // Session management selectors
@@ -151,18 +161,20 @@ export const selectIsTokenExpiringSoon = createSelector(
   }
 );
 
-// Complex computed selectors
+// UPDATED: Complex computed selectors
 export const selectUserDisplayInfo = createSelector(
   selectCurrentUser,
   selectUserFullName,
   selectUserInitials,
-  selectUserRoles,
-  (user, fullName, initials, roles) => ({
+  selectUserDisplayRoles,
+  (user, fullName, initials, displayRoles) => ({
     user,
     fullName,
     initials,
     email: user?.email || '',
-    roles: roles,
+    roles: user?.roles || [],
+    displayRoles,
+    isActive: user ? UserHelper.isActive(user) : false,
   })
 );
 
@@ -186,12 +198,34 @@ export const selectUserCapabilities = createSelector(
   selectCanViewAllProperties,
   selectCanManageCustomers,
   selectSubordinates,
-  (canManageUsers, canCreateProperties, canViewAllProperties, canManageCustomers, subordinates) => ({
+  selectUserPermissions,
+  (canManageUsers, canCreateProperties, canViewAllProperties, canManageCustomers, subordinates, permissions) => ({
     canManageUsers,
     canCreateProperties,
     canViewAllProperties,
     canManageCustomers,
     hasSubordinates: subordinates.length > 0,
     subordinateCount: subordinates.length,
+    permissions: permissions,
+    permissionResources: permissions.map(p => p.resource),
   })
 );
+
+// NEW: Permission checking helpers
+export const selectHasPermission = (resource: string, action: string) =>
+  createSelector(
+    selectUserPermissions,
+    (permissions) => {
+      const permission = permissions.find(p => p.resource === resource);
+      return permission ? permission.actions.includes(action) : false;
+    }
+  );
+
+export const selectHasAnyPermission = (resource: string, actions: string[]) =>
+  createSelector(
+    selectUserPermissions,
+    (permissions) => {
+      const permission = permissions.find(p => p.resource === resource);
+      return permission ? actions.some(action => permission.actions.includes(action)) : false;
+    }
+  );

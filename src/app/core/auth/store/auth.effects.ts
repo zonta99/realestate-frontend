@@ -131,7 +131,7 @@ export class AuthEffects {
     { dispatch: false }
   );
 
-  // Token Refresh Effect
+  // UPDATED: Token Refresh Effect - now uses accessToken parameter
   refreshToken$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.refreshToken),

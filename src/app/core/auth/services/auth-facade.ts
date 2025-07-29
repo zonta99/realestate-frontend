@@ -9,7 +9,13 @@ import {
   selectAuthLoadingStates,
   selectUserCapabilities,
   selectUserDisplayInfo,
-  selectIsTokenExpired
+  selectIsTokenExpired,
+  selectUserDisplayRoles,  // NEW: Added this selector
+  selectIsAdmin,           // NEW: Added role selectors
+  selectIsBroker,
+  selectIsAgent,
+  selectIsAssistant,
+  selectIsSupervisor
 } from '../store';
 import { LoginRequest } from '../models';
 
@@ -28,6 +34,16 @@ export class AuthFacadeService {
   readonly userDisplayInfo = this.store.selectSignal(selectUserDisplayInfo);
   readonly isTokenExpired = this.store.selectSignal(selectIsTokenExpired);
 
+  // NEW: Additional user info signals
+  readonly userDisplayRoles = this.store.selectSignal(selectUserDisplayRoles);
+
+  // NEW: Role check signals
+  readonly isAdmin = this.store.selectSignal(selectIsAdmin);
+  readonly isBroker = this.store.selectSignal(selectIsBroker);
+  readonly isAgent = this.store.selectSignal(selectIsAgent);
+  readonly isAssistant = this.store.selectSignal(selectIsAssistant);
+  readonly isSupervisor = this.store.selectSignal(selectIsSupervisor);
+
   // Computed values
   readonly isLoading = computed(() => this.loadingStates().isAnyLoading);
   readonly canManageUsers = computed(() => this.userCapabilities().canManageUsers);
@@ -37,6 +53,7 @@ export class AuthFacadeService {
   // Observable versions for guards and other services that need them
   readonly isAuthenticated$ = this.store.select(selectIsAuthenticated);
   readonly authError$ = this.store.select(selectAuthError);
+  readonly currentUser$ = this.store.select(selectCurrentUser);  // NEW: Added for guards
 
   // Actions
   login(credentials: LoginRequest): void {

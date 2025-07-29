@@ -1,14 +1,16 @@
-// src/app/core/auth/services/auth.service.ts
+// src/app/core/auth/services/auth-api.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import {
   LoginRequest,
   LoginResponse,
   User,
   Permission,
-  AuthTokens
+  AuthTokens,
+  RefreshTokenResponse
 } from '../models';
 
 @Injectable({
@@ -26,22 +28,41 @@ export class AuthService {
     return this.http.post<void>(`${this.apiUrl}/logout`, {});
   }
 
-  refreshToken(token: string): Observable<AuthTokens> {
-    return this.http.post<AuthTokens>(`${this.apiUrl}/refresh`, { token });
+  // UPDATED: Now uses Authorization header (matches backend expectation)
+  refreshToken(accessToken: string): Observable<RefreshTokenResponse> {
+    return this.http.post<RefreshTokenResponse>(
+      `${this.apiUrl}/refresh`,
+      {},
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    ).pipe(
+      map(response => ({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        expiresAt: new Date(response.expiresAt)
+      }))
+    );
   }
 
+  // UPDATED: Changed from /profile to /user (matches new backend)
   getCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/profile`);
+    return this.http.get<User>(`${this.apiUrl}/user`);
   }
 
+  // NEW: Get user permissions from backend
   getUserPermissions(): Observable<Permission[]> {
     return this.http.get<Permission[]>(`${this.apiUrl}/permissions`);
   }
 
+  // NEW: Get subordinates from backend
   getSubordinates(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/subordinates`);
   }
 
+  // Keep your existing profile management methods
   updateProfile(user: Partial<User>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/profile`, user);
   }

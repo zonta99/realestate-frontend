@@ -3,8 +3,6 @@ import { createReducer, on } from '@ngrx/store';
 import { initialAuthState, Role } from '../models';
 import { AuthActions } from './auth.actions';
 
-
-
 export const authReducer = createReducer(
   initialAuthState,
 
@@ -26,7 +24,7 @@ export const authReducer = createReducer(
     isLoggingIn: false,
     error: null,
     lastActivity: new Date(),
-    ...calculateRolePermissions(response.user.roles),
+    ...calculateRolePermissions(response.user.roles), // Now handles string[]
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
@@ -67,7 +65,7 @@ export const authReducer = createReducer(
     tokens,
     isLoading: false,
     lastActivity: new Date(),
-    ...calculateRolePermissions(user.roles),
+    ...calculateRolePermissions(user.roles), // Now handles string[]
   })),
 
   on(AuthActions.autoLoginFailure, (state) => ({
@@ -104,7 +102,7 @@ export const authReducer = createReducer(
     ...state,
     currentUser: user,
     isLoading: false,
-    ...calculateRolePermissions(user.roles),
+    ...calculateRolePermissions(user.roles), // Now handles string[]
   })),
 
   on(AuthActions.loadUserProfileFailure, (state, { error }) => ({
@@ -161,8 +159,8 @@ export const authReducer = createReducer(
   on(AuthActions.resetAuthState, () => initialAuthState),
 );
 
-// Helper function to calculate role-based permissions
-function calculateRolePermissions(roles: Role[]) {
+// UPDATED: Helper function to calculate role-based permissions - now handles string[]
+function calculateRolePermissions(roles: string[]) {
   if (!roles || roles.length === 0) {
     return {
       canManageUsers: false,
@@ -180,7 +178,9 @@ function calculateRolePermissions(roles: Role[]) {
     canManageCustomers: false,
   };
 
-  roles.forEach(role => {
+  roles.forEach(roleString => {
+    // Convert string back to Role enum for the helper function
+    const role = roleString as Role;
     const rolePermissions = getSingleRolePermissions(role);
     permissions.canManageUsers = permissions.canManageUsers || rolePermissions.canManageUsers;
     permissions.canCreateProperties = permissions.canCreateProperties || rolePermissions.canCreateProperties;
@@ -191,7 +191,7 @@ function calculateRolePermissions(roles: Role[]) {
   return permissions;
 }
 
-// Helper function to get permissions for a single role
+// Helper function to get permissions for a single role (unchanged)
 function getSingleRolePermissions(role: Role) {
   switch (role) {
     case Role.ADMIN:
