@@ -54,6 +54,7 @@ export class AuthFacadeService {
   readonly isAuthenticated$ = this.store.select(selectIsAuthenticated);
   readonly authError$ = this.store.select(selectAuthError);
   readonly currentUser$ = this.store.select(selectCurrentUser);  // NEW: Added for guards
+  readonly loadingStates$ = this.store.select(selectAuthLoadingStates);
 
   // Actions
   login(credentials: LoginRequest): void {

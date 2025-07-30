@@ -1,21 +1,22 @@
-// src/app/core/auth/guards/no-auth.guard.ts
+// src/app/core/auth/guards/no-auth-guard.ts
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { map, take } from 'rxjs/operators';
+import { map, filter, take } from 'rxjs/operators';
 import { AuthFacadeService } from '../services/auth-facade';
 
 export const noAuthGuard: CanActivateFn = () => {
   const authFacade = inject(AuthFacadeService);
   const router = inject(Router);
 
-  return authFacade.isAuthenticated$.pipe(
+  return authFacade.loadingStates$.pipe(
+    filter(states => !states.isLoading), // Wait until loading done
     take(1),
-    map((isAuthenticated) => {
-      if (isAuthenticated) {
-        router.navigate(['/dashboard']);
+    map(() => {
+      if (authFacade.isAuthenticated()) {
+        router.navigate(['/dashboard']); // Redirect authenticated users to dashboard
         return false;
       }
-      return true;
+      return true; // Allow access to login page for unauthenticated users
     })
   );
 };
