@@ -1,12 +1,14 @@
+// src/app/app.ts
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthFacadeService } from './core/auth/services/auth-facade';
+import { Navbar } from './shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, Navbar],
   template: `
     <div class="app-container">
       @if (isLoading()) {
@@ -15,7 +17,14 @@ import { AuthFacadeService } from './core/auth/services/auth-facade';
           <p>Loading application...</p>
         </div>
       } @else {
-        <router-outlet />
+        @if (isAuthenticated()) {
+          <app-navbar />
+          <main class="main-content">
+            <router-outlet />
+          </main>
+        } @else {
+          <router-outlet />
+        }
       }
     </div>
   `,
@@ -23,6 +32,8 @@ import { AuthFacadeService } from './core/auth/services/auth-facade';
     .app-container {
       min-height: 100vh;
       background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
     }
 
     .app-loading {
@@ -53,6 +64,19 @@ import { AuthFacadeService } from './core/auth/services/auth-facade';
       margin: 0;
       font-size: 16px;
     }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Mobile bottom nav spacing */
+    @media (max-width: 767px) {
+      .main-content {
+        padding-bottom: 80px;
+      }
+    }
   `]
 })
 export class App implements OnInit {
@@ -60,6 +84,7 @@ export class App implements OnInit {
 
   // Check if app is loading (during auth check)
   isLoading = this.authFacade.isLoading;
+  isAuthenticated = this.authFacade.isAuthenticated;
 
   ngOnInit(): void {
     // Check for stored authentication on app start

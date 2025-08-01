@@ -137,8 +137,10 @@ import { AuthFacadeService } from '../../core/auth/services/auth-facade';
                 [disabled]="profileForm.invalid || isLoading()"
               >
                 @if (isLoading()) {
-                  <mat-icon>sync</mat-icon>
-                  Saving...
+                  <ng-container>
+                    <mat-icon>sync</mat-icon>
+                    Saving...
+                  </ng-container>
                 } @else {
                   Save Changes
                 }
@@ -249,8 +251,10 @@ import { AuthFacadeService } from '../../core/auth/services/auth-facade';
                 [disabled]="passwordForm.invalid || isLoading()"
               >
                 @if (isLoading()) {
+                  <ng-container>
                   <mat-icon>sync</mat-icon>
                   Changing...
+                  </ng-container>
                 } @else {
                   Change Password
                 }
