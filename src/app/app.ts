@@ -1,80 +1,87 @@
-// src/app/app.ts
+// src/app/app.ts - Updated with Material theming
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthFacadeService } from './core/auth/services/auth-facade';
-import { Navbar } from './shared/components/navbar/navbar';
+import { LoadingComponent } from './shared/components/loading/loading';
+import {Navbar} from './shared/components/navbar/navbar';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, CommonModule, Navbar],
+  imports: [RouterOutlet, CommonModule, LoadingComponent, Navbar],
   template: `
     <div class="app-container">
       @if (isLoading()) {
-        <div class="app-loading">
-          <div class="loading-spinner"></div>
-          <p>Loading application...</p>
-        </div>
+        <app-loading
+          type="spinner"
+          size="medium"
+          message="Loading application..."
+          [fullscreen]="true">
+        </app-loading>
       } @else {
-        @if (isAuthenticated()) {
-          <app-navbar />
-          <main class="main-content">
-            <router-outlet />
-          </main>
-        } @else {
-          <router-outlet />
-        }
+        <app-navbar />
+        <main class="main-content">
+        <router-outlet />
+        </main>
       }
     </div>
   `,
   styles: [`
     .app-container {
       min-height: 100vh;
-      background-color: #fafafa;
-      display: flex;
-      flex-direction: column;
+      background-color: var(--mat-sys-background);
+      color: var(--mat-sys-on-background);
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    .app-loading {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+    /* Ensure proper theming for the entire app */
+    :host {
+      display: block;
       min-height: 100vh;
-      gap: 16px;
     }
 
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e0e0e0;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    /* Global scrollbar theming using M3 colors */
+    :host ::ng-deep {
+      /* Webkit scrollbars */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--mat-sys-surface-variant);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--mat-sys-outline);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--mat-sys-outline-variant);
+      }
+
+      /* Focus outlines using M3 colors */
+      *:focus-visible {
+        outline: 2px solid var(--mat-sys-primary);
+        outline-offset: 2px;
+        border-radius: var(--app-border-radius);
+      }
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* High contrast mode support */
+    @media (prefers-contrast: more) {
+      .app-container {
+        border: 1px solid var(--mat-sys-outline);
+      }
     }
 
-    .app-loading p {
-      color: #666;
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Mobile bottom nav spacing */
-    @media (max-width: 767px) {
-      .main-content {
-        padding-bottom: 80px;
+    /* Print styles */
+    @media print {
+      .app-container {
+        background: white !important;
+        color: black !important;
       }
     }
   `]
@@ -84,10 +91,25 @@ export class App implements OnInit {
 
   // Check if app is loading (during auth check)
   isLoading = this.authFacade.isLoading;
-  isAuthenticated = this.authFacade.isAuthenticated;
 
   ngOnInit(): void {
     // Check for stored authentication on app start
     this.authFacade.checkStoredAuth();
+
+    // Initialize theme
+    this.initializeTheme();
+  }
+
+  private initializeTheme(): void {
+    // Apply initial theme based on stored preference or system
+    const storedTheme = localStorage.getItem('app-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (storedTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+    // If no preference or 'auto', let CSS handle it with media queries
   }
 }
