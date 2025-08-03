@@ -57,11 +57,11 @@ export type LoadingSize = 'small' | 'medium' | 'large';
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: var(--app-spacing-md);
-      padding: var(--app-spacing-lg);
+      gap: var(--mat-spacing-md);
+      padding: var(--mat-spacing-lg);
       background-color: var(--mat-sys-surface);
       color: var(--mat-sys-on-surface);
-      border-radius: var(--app-border-radius);
+      border-radius: var(--mat-border-radius-sm);
     }
 
     .loading-container.fullscreen {
@@ -117,7 +117,7 @@ export type LoadingSize = 'small' | 'medium' | 'large';
     /* Custom Dots Animation */
     .loading-dots {
       display: flex;
-      gap: var(--app-spacing-xs);
+      gap: var(--mat-spacing-xs);
     }
 
     .loading-dots.size-small .dot {
@@ -222,8 +222,8 @@ export type LoadingSize = 'small' | 'medium' | 'large';
     /* Responsive adjustments */
     @media (max-width: 768px) {
       .loading-container {
-        padding: var(--app-spacing-md);
-        gap: var(--app-spacing-sm);
+        padding: var(--mat-spacing-md);
+        gap: var(--mat-spacing-sm);
       }
 
       .progress-container {

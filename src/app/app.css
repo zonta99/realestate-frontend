@@ -1,0 +1,56 @@
+.app-container {
+  min-height: 100vh;
+  background-color: var(--mat-sys-background);
+  color: var(--mat-sys-on-background);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure proper theming for the entire app */
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Global scrollbar theming using M3 colors */
+:host ::ng-deep {
+  /* Webkit scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--mat-sys-surface-variant);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--mat-sys-outline);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--mat-sys-outline-variant);
+  }
+
+  /* Focus outlines using M3 colors */
+  *:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+    border-radius: var(--mat-border-radius-sm);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .app-container {
+    border: 1px solid var(--mat-sys-outline);
+  }
+}
+
+/* Print styles */
+@media print {
+  .app-container {
+    background: white !important;
+    color: black !important;
+  }
+}
