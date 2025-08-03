@@ -1,0 +1,23 @@
+<mat-card 
+  class="stat-card" 
+  [class]="getColorClass() + '-card'"
+  [class.clickable]="clickable"
+  appearance="outlined">
+  <mat-card-content>
+    <div class="stat-content">
+      <div class="stat-icon-container" [class]="getColorClass()">
+        <mat-icon class="stat-icon">{{ data.icon }}</mat-icon>
+      </div>
+      <div class="stat-details">
+        <span class="stat-number">{{ data.value }}</span>
+        <span class="stat-label">{{ data.title }}</span>
+        @if (data.trend) {
+          <div class="stat-trend" [class]="getTrendClass()">
+            <mat-icon>{{ getTrendIcon() }}</mat-icon>
+            <span>{{ data.trend.value }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card> 

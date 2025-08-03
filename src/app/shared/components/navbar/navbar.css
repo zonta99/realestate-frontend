@@ -1,0 +1,195 @@
+/* Simplified navbar styles using Material Design utilities */
+
+.mobile-top-bar {
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.brand-section {
+  cursor: pointer;
+  padding: var(--mat-spacing-xs) var(--mat-spacing-sm);
+  border-radius: var(--mat-border-radius-sm);
+  color: var(--mat-sys-on-primary);
+}
+
+.brand-section:hover {
+  background-color: var(--mat-sys-primary-container);
+}
+
+.brand-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--mat-sys-outline-variant);
+}
+
+.user-avatar.mobile {
+  width: 28px;
+  height: 28px;
+}
+
+.user-avatar.large {
+  width: 48px;
+  height: 48px;
+  background: var(--mat-primary-gradient);
+  border: none;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding: var(--mat-spacing-sm) 0 calc(var(--mat-spacing-sm) + env(safe-area-inset-bottom));
+  z-index: 1000;
+}
+
+.bottom-nav-item {
+  color: var(--mat-sys-on-surface-variant);
+  min-height: 56px;
+  flex: 1;
+  max-width: 80px;
+  position: relative;
+}
+
+.bottom-nav-item:hover {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.bottom-nav-item.active {
+  color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary-container);
+}
+
+.bottom-nav-item mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.desktop-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0 var(--mat-spacing-lg);
+}
+
+.desktop-nav {
+  margin-left: var(--mat-spacing-xl);
+}
+
+.nav-button {
+  padding: var(--mat-spacing-sm) var(--mat-spacing-md);
+  color: var(--mat-sys-on-primary);
+  border-radius: var(--mat-border-radius-sm);
+}
+
+.nav-button:hover,
+.nav-button.active {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.user-menu-button {
+  padding: var(--mat-spacing-xs) var(--mat-spacing-md);
+  color: var(--mat-sys-on-primary);
+  border-radius: var(--mat-border-radius-sm);
+}
+
+.user-menu-button:hover {
+  background-color: var(--mat-sys-primary-container);
+}
+
+.user-menu {
+  min-width: 320px;
+  max-width: 400px;
+  border-radius: var(--mat-border-radius-sm);
+}
+
+.user-menu-header {
+  border-radius: var(--mat-border-radius-sm) var(--mat-border-radius-sm) 0 0;
+}
+
+.user-details .user-name {
+  color: var(--mat-sys-on-surface);
+}
+
+.user-email {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.role-chip.admin {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.role-chip.broker {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.role-chip.agent {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.menu-item {
+  padding: var(--mat-spacing-md) var(--mat-spacing-lg);
+  color: var(--mat-sys-on-surface);
+}
+
+.menu-item:hover {
+  background-color: var(--mat-sys-surface-container-high);
+}
+
+.team-count {
+  margin-left: auto;
+  color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary-container);
+  padding: 2px var(--mat-spacing-xs);
+  border-radius: var(--mat-border-radius-sm);
+}
+
+.logout-button {
+  color: var(--mat-sys-error) !important;
+}
+
+.logout-button:hover {
+  background-color: var(--mat-sys-error-container) !important;
+}
+
+/* Responsive design */
+@media (max-width: 767px) {
+  :host {
+    padding-bottom: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-nav-item {
+    max-width: 70px;
+  }
+  
+  .brand-text {
+    display: none;
+  }
+  
+  .user-menu {
+    min-width: 280px;
+  }
+} 
