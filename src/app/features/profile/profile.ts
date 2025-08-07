@@ -1,6 +1,6 @@
 // src/app/features/profile/profile.ts
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, signal, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, AbstractControlOptions } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 // Angular Material imports
@@ -13,7 +13,29 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+
 import { AuthFacadeService } from '../../core/auth/services/auth-facade';
+
+// Custom validators
+const passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
+  const value = control.value;
+  if (!value) return null;
+
+  const hasNumber = /[0-9]/.test(value);
+  const hasUpper = /[A-Z]/.test(value);
+  const hasLower = /[a-z]/.test(value);
+  const hasSpecial = /[#?!@$%^&*-]/.test(value);
+  const valid = hasNumber && hasUpper && hasLower && hasSpecial;
+
+  if (!valid) {
+    return { passwordStrength: { hasNumber, hasUpper, hasLower, hasSpecial } };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-profile',
@@ -29,410 +51,65 @@ import { AuthFacadeService } from '../../core/auth/services/auth-facade';
     MatDividerModule,
     MatChipsModule,
     MatProgressBarModule,
+    MatTabsModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatRippleModule,
   ],
-  template: `
-    <div class="profile-container">
-      <div class="profile-header">
-        <h1>Profile Settings</h1>
-        <p>Manage your account information and preferences</p>
-      </div>
-
-      <!-- Profile Overview Card -->
-      <mat-card class="profile-overview">
-        <mat-card-header>
-          <div class="profile-avatar">
-            <div class="avatar-circle">
-              {{ userDisplayInfo().initials }}
-            </div>
-          </div>
-          <mat-card-title>{{ userDisplayInfo().fullName }}</mat-card-title>
-          <mat-card-subtitle>{{ userDisplayInfo().email }}</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="role-info">
-            <mat-chip-set>
-              <mat-chip [class]="getRoleClass()">
-                <mat-icon>{{ getRoleIcon() }}</mat-icon>
-                {{ getRoleDisplayName() }}
-              </mat-chip>
-            </mat-chip-set>
-          </div>
-          @if (hasSubordinates()) {
-            <div class="team-info">
-              <mat-icon>group</mat-icon>
-              <span>Managing {{ subordinateCount() }} team members</span>
-            </div>
-          }
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Edit Profile Form -->
-      <mat-card class="profile-form">
-        <mat-card-header>
-          <mat-card-title>Personal Information</mat-card-title>
-          <mat-card-subtitle>Update your personal details</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>First Name</mat-label>
-                <input matInput formControlName="firstName" placeholder="Enter first name">
-                @if (firstNameField()?.invalid && firstNameField()?.touched) {
-                  <mat-error>First name is required</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Last Name</mat-label>
-                <input matInput formControlName="lastName" placeholder="Enter last name">
-                @if (lastNameField()?.invalid && lastNameField()?.touched) {
-                  <mat-error>Last name is required</mat-error>
-                }
-              </mat-form-field>
-            </div>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" placeholder="Enter email">
-              <mat-icon matSuffix>email</mat-icon>
-              @if (emailField()?.invalid && emailField()?.touched) {
-                <mat-error>
-                  @if (emailField()?.errors?.['required']) {
-                    Email is required
-                  }
-                  @if (emailField()?.errors?.['email']) {
-                    Please enter a valid email
-                  }
-                </mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Username</mat-label>
-              <input matInput formControlName="username" placeholder="Enter username">
-              <mat-icon matSuffix>person</mat-icon>
-              @if (usernameField()?.invalid && usernameField()?.touched) {
-                <mat-error>Username is required</mat-error>
-              }
-            </mat-form-field>
-
-            @if (isLoading()) {
-              <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            }
-
-            <div class="form-actions">
-              <button
-                mat-button
-                type="button"
-                (click)="resetForm()"
-                [disabled]="isLoading()"
-              >
-                Reset
-              </button>
-              <button
-                mat-raised-button
-                color="primary"
-                type="submit"
-                [disabled]="profileForm.invalid || isLoading()"
-              >
-                @if (isLoading()) {
-                  <ng-container>
-                    <mat-icon>sync</mat-icon>
-                    Saving...
-                  </ng-container>
-                } @else {
-                  Save Changes
-                }
-              </button>
-            </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Change Password Card -->
-      <mat-card class="password-form">
-        <mat-card-header>
-          <mat-card-title>Change Password</mat-card-title>
-          <mat-card-subtitle>Update your account password</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
-            <mat-form-field appearance="outline">
-              <mat-label>Current Password</mat-label>
-              <input
-                matInput
-                [type]="hideCurrentPassword() ? 'password' : 'text'"
-                formControlName="currentPassword"
-                placeholder="Enter current password"
-              >
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="toggleCurrentPasswordVisibility()"
-              >
-                <mat-icon>{{ hideCurrentPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              @if (currentPasswordField()?.invalid && currentPasswordField()?.touched) {
-                <mat-error>Current password is required</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>New Password</mat-label>
-              <input
-                matInput
-                [type]="hideNewPassword() ? 'password' : 'text'"
-                formControlName="newPassword"
-                placeholder="Enter new password"
-              >
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="toggleNewPasswordVisibility()"
-              >
-                <mat-icon>{{ hideNewPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              @if (newPasswordField()?.invalid && newPasswordField()?.touched) {
-                <mat-error>
-                  @if (newPasswordField()?.errors?.['required']) {
-                    New password is required
-                  }
-                  @if (newPasswordField()?.errors?.['minlength']) {
-                    Password must be at least 6 characters
-                  }
-                </mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Confirm New Password</mat-label>
-              <input
-                matInput
-                [type]="hideConfirmPassword() ? 'password' : 'text'"
-                formControlName="confirmPassword"
-                placeholder="Confirm new password"
-              >
-              <button
-                mat-icon-button
-                matSuffix
-                type="button"
-                (click)="toggleConfirmPasswordVisibility()"
-              >
-                <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-              </button>
-              @if (confirmPasswordField()?.invalid && confirmPasswordField()?.touched) {
-                <mat-error>
-                  @if (confirmPasswordField()?.errors?.['required']) {
-                    Please confirm your password
-                  }
-                  @if (passwordForm.hasError('passwordMismatch')) {
-                    Passwords do not match
-                  }
-                </mat-error>
-              }
-            </mat-form-field>
-
-            <div class="form-actions">
-              <button
-                mat-button
-                type="button"
-                (click)="resetPasswordForm()"
-                [disabled]="isLoading()"
-              >
-                Reset
-              </button>
-              <button
-                mat-raised-button
-                color="accent"
-                type="submit"
-                [disabled]="passwordForm.invalid || isLoading()"
-              >
-                @if (isLoading()) {
-                  <ng-container>
-                  <mat-icon>sync</mat-icon>
-                  Changing...
-                  </ng-container>
-                } @else {
-                  Change Password
-                }
-              </button>
-            </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .profile-container {
-      padding: 24px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .profile-header {
-      margin-bottom: 32px;
-      text-align: center;
-    }
-
-    .profile-header h1 {
-      margin: 0 0 8px 0;
-      font-size: 28px;
-      font-weight: 400;
-    }
-
-    .profile-header p {
-      margin: 0;
-      color: #666;
-      font-size: 16px;
-    }
-
-    .profile-overview {
-      margin-bottom: 24px;
-    }
-
-    .profile-overview mat-card-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .profile-avatar {
-      margin-right: 16px;
-    }
-
-    .avatar-circle {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-      font-weight: 500;
-    }
-
-    .role-info {
-      margin: 16px 0;
-    }
-
-    .role-info mat-chip {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .role-info mat-chip.admin {
-      background-color: #f44336;
-      color: white;
-    }
-
-    .role-info mat-chip.broker {
-      background-color: #ff9800;
-      color: white;
-    }
-
-    .role-info mat-chip.agent {
-      background-color: #4caf50;
-      color: white;
-    }
-
-    .role-info mat-chip.assistant {
-      background-color: #2196f3;
-      color: white;
-    }
-
-    .team-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #666;
-      margin-top: 8px;
-    }
-
-    .profile-form,
-    .password-form {
-      margin-bottom: 24px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    mat-form-field {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 24px;
-    }
-
-    @media (max-width: 768px) {
-      .profile-container {
-        padding: 16px;
-      }
-
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-
-      .form-actions {
-        flex-direction: column;
-      }
-
-      .form-actions button {
-        width: 100%;
-      }
-    }
-  `]
+  templateUrl: './profile.html',
+  styleUrls: ['./profile.css']
 })
 export class Profile {
   private fb = inject(FormBuilder);
   private authFacade = inject(AuthFacadeService);
   private snackBar = inject(MatSnackBar);
 
-  // Signals for password visibility
+  // Loading states
+  profileSaving = signal(false);
+  passwordSaving = signal(false);
+
+  // Password visibility signals
   hideCurrentPassword = signal(true);
   hideNewPassword = signal(true);
   hideConfirmPassword = signal(true);
 
-  // Auth state - using the facade's signals
+  // Auth state
   currentUser = this.authFacade.currentUser;
   userDisplayInfo = this.authFacade.userDisplayInfo;
   isLoading = this.authFacade.isLoading;
   hasSubordinates = this.authFacade.hasSubordinates;
   subordinateCount = computed(() => this.authFacade.userCapabilities().subordinateCount);
 
-  // Role check signals from facade
+  // Role check signals
   isAdmin = this.authFacade.isAdmin;
   isBroker = this.authFacade.isBroker;
   isAgent = this.authFacade.isAgent;
   isAssistant = this.authFacade.isAssistant;
 
-  // Profile form
+  // Original form values for change detection
+  private originalProfileValues = signal<any>(null);
+
+  // Custom password match validator
+  private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const newPassword = control.get('newPassword')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    return newPassword === confirmPassword ? null : { passwordMismatch: true };
+  }
+
+  // Profile form with enhanced validation
   profileForm: FormGroup = this.fb.group({
-    firstName: ['', [Validators.required]],
-    lastName: ['', [Validators.required]],
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    username: ['', [Validators.required]]
+    username: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z0-9_]+$/)]]
   });
 
-  // Password form
+  // Password form with enhanced validation
   passwordForm: FormGroup = this.fb.group({
     currentPassword: ['', [Validators.required]],
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    newPassword: ['', [Validators.required, Validators.minLength(8), passwordStrengthValidator]],
     confirmPassword: ['', [Validators.required]]
-  }, { validators: this.passwordMatchValidator });
+  }, { validators: [this.passwordMatchValidator] } as AbstractControlOptions);
 
   // Form field getters
   firstNameField = computed(() => this.profileForm.get('firstName'));
@@ -443,25 +120,49 @@ export class Profile {
   newPasswordField = computed(() => this.passwordForm.get('newPassword'));
   confirmPasswordField = computed(() => this.passwordForm.get('confirmPassword'));
 
+  // Password strength calculation
+  passwordStrength = computed(() => {
+    const password = this.newPasswordField()?.value || '';
+    let strength = 0;
+
+    if (password.length >= 8) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[#?!@$%^&*-]/.test(password)) strength++;
+
+    return Math.min(strength, 4);
+  });
+
+  // Check if profile form has changes
+  hasProfileChanges = computed(() => {
+    const original = this.originalProfileValues();
+    const current = this.profileForm.value;
+
+    if (!original) return false;
+
+    return Object.keys(current).some(key => original[key] !== current[key]);
+  });
+
   constructor() {
     // Initialize form with current user data
-    const user = this.currentUser();
-    if (user) {
-      this.profileForm.patchValue({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        username: user.username
-      });
-    }
+    effect(() => {
+      const user = this.currentUser();
+      if (user) {
+        const formValues = {
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          username: user.username || ''
+        };
+
+        this.profileForm.patchValue(formValues);
+        this.originalProfileValues.set({ ...formValues });
+      }
+    });
   }
 
-  passwordMatchValidator(group: FormGroup) {
-    const newPassword = group.get('newPassword')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return newPassword === confirmPassword ? null : { passwordMismatch: true };
-  }
-
+  // Password visibility toggles
   toggleCurrentPasswordVisibility(): void {
     this.hideCurrentPassword.update(value => !value);
   }
@@ -474,73 +175,113 @@ export class Profile {
     this.hideConfirmPassword.update(value => !value);
   }
 
-  // UPDATED: Simplified role methods using AuthFacade signals
+  // Role-based methods
   getRoleClass(): string {
     if (this.isAdmin()) return 'admin';
     if (this.isBroker()) return 'broker';
     if (this.isAgent()) return 'agent';
-    if (this.isAssistant()) return 'assistant';
-    return 'assistant'; // default
+    return 'assistant';
   }
 
   getRoleIcon(): string {
     if (this.isAdmin()) return 'admin_panel_settings';
     if (this.isBroker()) return 'business';
     if (this.isAgent()) return 'person';
-    if (this.isAssistant()) return 'support_agent';
-    return 'person'; // default
+    return 'support_agent';
   }
 
   getRoleDisplayName(): string {
     if (this.isAdmin()) return 'Administrator';
     if (this.isBroker()) return 'Broker';
     if (this.isAgent()) return 'Agent';
-    if (this.isAssistant()) return 'Assistant';
-    return 'User'; // default
+    return 'Assistant';
   }
 
-  onSaveProfile(): void {
-    if (this.profileForm.valid && !this.isLoading()) {
-      // TODO: Implement profile update
-      this.snackBar.open('Profile updated successfully!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-      });
+  // Password strength text
+  getPasswordStrengthText(): string {
+    const strength = this.passwordStrength();
+    const texts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    return texts[strength] || 'Very Weak';
+  }
+
+  // Form submission methods
+  async onSaveProfile(): Promise<void> {
+    if (this.profileForm.valid && !this.profileSaving()) {
+      this.profileSaving.set(true);
+
+      try {
+        // TODO: Implement actual API call
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+
+        // Update original values after successful save
+        this.originalProfileValues.set({ ...this.profileForm.value });
+
+        this.snackBar.open('Profile updated successfully!', 'Close', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+      } catch (error) {
+        this.snackBar.open('Failed to update profile. Please try again.', 'Close', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+      } finally {
+        this.profileSaving.set(false);
+      }
     } else {
       this.profileForm.markAllAsTouched();
     }
   }
 
-  onChangePassword(): void {
-    if (this.passwordForm.valid && !this.isLoading()) {
-      // TODO: Implement password change
-      this.snackBar.open('Password changed successfully!', 'Close', {
-        duration: 3000,
-        horizontalPosition: 'end',
-        verticalPosition: 'top',
-      });
-      this.resetPasswordForm();
+  async onChangePassword(): Promise<void> {
+    if (this.passwordForm.valid && !this.passwordSaving()) {
+      this.passwordSaving.set(true);
+
+      try {
+        // TODO: Implement actual API call
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+
+        this.snackBar.open('Password changed successfully!', 'Close', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+
+        this.resetPasswordForm();
+      } catch (error) {
+        this.snackBar.open('Failed to change password. Please try again.', 'Close', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+      } finally {
+        this.passwordSaving.set(false);
+      }
     } else {
       this.passwordForm.markAllAsTouched();
     }
   }
 
-  resetForm(): void {
-    const user = this.currentUser();
-    if (user) {
-      this.profileForm.patchValue({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        username: user.username
-      });
+  // Form reset methods
+  resetProfileForm(): void {
+    const original = this.originalProfileValues();
+    if (original) {
+      this.profileForm.patchValue(original);
+      this.profileForm.markAsUntouched();
     }
-    this.profileForm.markAsUntouched();
   }
 
   resetPasswordForm(): void {
     this.passwordForm.reset();
     this.passwordForm.markAsUntouched();
+    this.hideCurrentPassword.set(true);
+    this.hideNewPassword.set(true);
+    this.hideConfirmPassword.set(true);
   }
 }

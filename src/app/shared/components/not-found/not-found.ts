@@ -1,4 +1,4 @@
-// src/app/shared/components/not-found/not-found.ts - Refactored with Material UI theming
+// src/app/shared/components/not-found/not-found.ts - Refactored with Material Design 3 tokens
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -7,6 +7,7 @@ import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-not-found',
@@ -17,54 +18,54 @@ import { MatIconModule } from '@angular/material/icon';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
   ],
   template: `
     <div class="error-container">
       <mat-card class="error-card" appearance="outlined">
-        <mat-card-content>
-          <div class="error-content">
+        <mat-card-content class="error-content">
+          <div class="error-header">
             <div class="error-number">404</div>
-            <div class="error-icon-container">
-              <mat-icon class="error-icon">search_off</mat-icon>
-            </div>
-            <h1>Page Not Found</h1>
+            <mat-icon class="error-icon">search_off</mat-icon>
+            <h1 class="error-title">Page Not Found</h1>
             <p class="error-message">
               The page you're looking for doesn't exist or has been moved.
               Let's get you back on track.
             </p>
+          </div>
 
-            <div class="error-actions">
-              <button mat-raised-button color="primary" routerLink="/dashboard"
-                      class="primary-action">
+          <div class="error-actions">
+            <button mat-stroked-button color="primary" routerLink="/dashboard">
+              <mat-icon>home</mat-icon>
+              Go to Dashboard
+            </button>
+            <button mat-stroked-button routerLink="/properties">
+              <mat-icon>home_work</mat-icon>
+              Browse Properties
+            </button>
+            <button mat-stroked-button routerLink="/customers">
+              <mat-icon>people</mat-icon>
+              View Customers
+            </button>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="help-section">
+            <p class="help-text">Need help? Try these popular sections:</p>
+            <div class="quick-links">
+              <a mat-button routerLink="/profile">
+                <mat-icon>person</mat-icon>
+                Profile
+              </a>
+              <a mat-button routerLink="/properties">
                 <mat-icon>home</mat-icon>
-                Go to Dashboard
-              </button>
-              <button mat-outlined-button routerLink="/properties" class="secondary-action">
-                <mat-icon>home_work</mat-icon>
-                Browse Properties
-              </button>
-              <button mat-outlined-button routerLink="/customers" class="secondary-action">
-                <mat-icon>people</mat-icon>
-                View Customers
-              </button>
-            </div>
-
-            <div class="help-section">
-              <p class="help-text">Need help? Try these popular sections:</p>
-              <div class="quick-links">
-                <a mat-button routerLink="/profile" class="quick-link">
-                  <mat-icon>person</mat-icon>
-                  Profile
-                </a>
-                <a mat-button routerLink="/properties" class="quick-link">
-                  <mat-icon>home</mat-icon>
-                  Properties
-                </a>
-                <a mat-button routerLink="/customers" class="quick-link">
-                  <mat-icon>group</mat-icon>
-                  Customers
-                </a>
-              </div>
+                Properties
+              </a>
+              <a mat-button routerLink="/customers">
+                <mat-icon>group</mat-icon>
+                Customers
+              </a>
             </div>
           </div>
         </mat-card-content>
@@ -77,35 +78,32 @@ import { MatIconModule } from '@angular/material/icon';
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: var(--app-spacing-lg);
-      background: var(--app-gradient-bg);
+      padding: 24px;
+      background: var(--mat-sys-surface-container-lowest);
     }
 
     .error-card {
       max-width: 600px;
       width: 100%;
       text-align: center;
-      background-color: var(--mat-sys-surface-container);
-      border: 1px solid var(--mat-sys-outline-variant);
-      box-shadow: var(--mat-sys-level-3);
+      background: var(--mat-sys-surface-container);
+      border-color: var(--mat-sys-outline-variant);
     }
 
     .error-content {
-      padding: var(--app-spacing-lg);
+      padding: 32px 24px;
+    }
+
+    .error-header {
+      margin-bottom: 32px;
     }
 
     .error-number {
-      font-family: var(--mat-sys-typescale-display-large-font-family-name);
-      font-size: 120px;
-      font-weight: 900;
+      font: var(--mat-sys-typescale-display-large);
       color: var(--mat-sys-primary);
       line-height: 1;
-      margin-bottom: var(--app-spacing-md);
-      text-shadow: 0 4px 8px var(--mat-sys-shadow);
-    }
-
-    .error-icon-container {
-      margin-bottom: var(--app-spacing-md);
+      margin-bottom: 16px;
+      font-weight: 900;
     }
 
     .error-icon {
@@ -113,22 +111,21 @@ import { MatIconModule } from '@angular/material/icon';
       width: 60px;
       height: 60px;
       color: var(--mat-sys-on-surface-variant);
+      margin-bottom: 16px;
     }
 
-    h1 {
-      margin: 0 0 var(--app-spacing-md) 0;
-      font-family: var(--mat-sys-typescale-headline-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-headline-medium-font-size);
-      font-weight: var(--mat-sys-typescale-headline-medium-font-weight);
+    .error-title {
+      margin: 0 0 16px 0;
+      font: var(--mat-sys-typescale-headline-medium);
       color: var(--mat-sys-on-surface);
+      font-weight: 500;
     }
 
     .error-message {
-      margin: 0 0 var(--app-spacing-xl) 0;
+      margin: 0 0 32px 0;
+      font: var(--mat-sys-typescale-body-large);
       color: var(--mat-sys-on-surface-variant);
       line-height: 1.5;
-      font-family: var(--mat-sys-typescale-body-large-font-family-name);
-      font-size: var(--mat-sys-typescale-body-large-font-size);
       max-width: 480px;
       margin-left: auto;
       margin-right: auto;
@@ -137,92 +134,81 @@ import { MatIconModule } from '@angular/material/icon';
     .error-actions {
       display: flex;
       flex-direction: column;
-      gap: var(--app-spacing-md);
+      gap: 16px;
       align-items: center;
-      margin-bottom: var(--app-spacing-xl);
+      margin-bottom: 32px;
     }
 
-    .primary-action {
+    .error-actions button {
       min-width: 200px;
-      height: 48px;
-      border-radius: var(--app-border-radius);
-    }
-
-    .secondary-action {
-      min-width: 180px;
-      height: 40px;
-      border-radius: var(--app-border-radius);
-      border-color: var(--mat-sys-outline);
-      color: var(--mat-sys-on-surface);
-    }
-
-    .secondary-action:hover {
-      background-color: var(--mat-sys-surface-container-high);
-      border-color: var(--mat-sys-primary);
-    }
-
-    .primary-action,
-    .secondary-action {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--app-spacing-sm);
-      font-family: var(--mat-sys-typescale-label-large-font-family-name);
+      gap: 8px;
+    }
+
+    mat-divider {
+      margin: 24px 0;
     }
 
     .help-section {
-      border-top: 1px solid var(--mat-sys-outline-variant);
-      padding-top: var(--app-spacing-lg);
-      margin-top: var(--app-spacing-lg);
+      padding-top: 24px;
     }
 
     .help-text {
-      margin: 0 0 var(--app-spacing-md) 0;
+      margin: 0 0 16px 0;
+      font: var(--mat-sys-typescale-body-medium);
       color: var(--mat-sys-on-surface-variant);
-      font-family: var(--mat-sys-typescale-body-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-body-medium-font-size);
     }
 
     .quick-links {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: var(--app-spacing-sm);
+      gap: 8px;
     }
 
-    .quick-link {
+    .quick-links a {
       display: flex;
       align-items: center;
-      gap: var(--app-spacing-xs);
-      font-family: var(--mat-sys-typescale-label-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-label-medium-font-size);
+      gap: 8px;
       color: var(--mat-sys-primary);
-      border-radius: var(--app-border-radius);
     }
 
-    .quick-link:hover {
-      background-color: var(--mat-sys-primary-container);
+    .quick-links a:hover {
+      background: var(--mat-sys-primary-container);
       color: var(--mat-sys-on-primary-container);
     }
 
-    /* Responsive Design */
-    @media (min-width: 480px) {
+    /* Responsive Design - following Material Design 3 breakpoints */
+    @media (min-width: 600px) {
       .error-actions {
         flex-direction: row;
         justify-content: center;
         flex-wrap: wrap;
       }
 
-      .primary-action,
-      .secondary-action {
+      .error-actions button {
         min-width: auto;
         flex: 0 1 auto;
       }
+
+      .error-container {
+        padding: 32px;
+      }
+
+      .error-content {
+        padding: 40px 32px;
+      }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 599px) {
       .error-container {
-        padding: var(--app-spacing-md);
+        padding: 16px;
+      }
+
+      .error-content {
+        padding: 24px 16px;
       }
 
       .error-number {
@@ -230,32 +216,37 @@ import { MatIconModule } from '@angular/material/icon';
       }
 
       .error-icon {
-        font-size: 40px;
-        width: 40px;
-        height: 40px;
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
       }
 
-      h1 {
-        font-size: var(--mat-sys-typescale-headline-small-font-size);
+      .error-title {
+        font: var(--mat-sys-typescale-headline-small);
       }
 
-      .error-content {
-        padding: var(--app-spacing-md);
-      }
-
-      .primary-action {
-        min-width: 100%;
-      }
-
-      .secondary-action {
+      .error-actions button {
         min-width: 100%;
       }
     }
 
-    /* High contrast mode */
+    /* High contrast mode support */
     @media (prefers-contrast: high) {
       .error-card {
         border-width: 2px;
+      }
+
+      .error-number {
+        font-weight: 900;
+      }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
       }
     }
   `]

@@ -9,8 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { AuthFacadeService } from '../../core/auth/services/auth-facade';
 
 @Component({
@@ -24,26 +22,12 @@ import { AuthFacadeService } from '../../core/auth/services/auth-facade';
     MatIconModule,
     MatProgressBarModule,
     MatChipsModule,
-    MatGridListModule,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard {
   private authFacade = inject(AuthFacadeService);
-  private breakpointObserver = inject(BreakpointObserver);
-
-  // Responsive breakpoints
-  isHandset = this.breakpointObserver.isMatched(Breakpoints.Handset);
-  isTablet = this.breakpointObserver.isMatched(Breakpoints.Tablet);
-  isWeb = this.breakpointObserver.isMatched(Breakpoints.Web);
-
-  // Dynamic grid columns based on screen size
-  gridCols = computed(() => {
-    if (this.isHandset) return 1;
-    if (this.isTablet) return 2;
-    return 4;
-  });
 
   // Auth state
   userDisplayInfo = this.authFacade.userDisplayInfo;

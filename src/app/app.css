@@ -5,6 +5,12 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
 /* Ensure proper theming for the entire app */
 :host {
   display: block;
@@ -36,7 +42,6 @@
   *:focus-visible {
     outline: 2px solid var(--mat-sys-primary);
     outline-offset: 2px;
-    border-radius: var(--mat-border-radius-sm);
   }
 }
 
@@ -52,5 +57,20 @@
   .app-container {
     background: white !important;
     color: black !important;
+  }
+}
+
+/* Mobile spacing for bottom navigation */
+@media (max-width: 768px) {
+  .main-content {
+    /* Add padding to prevent content from being hidden behind bottom nav */
+    /* Bottom nav height (56px min-height + 16px total padding + 8px extra margin) */
+    padding-bottom: 80px;
+  }
+
+  /* Ensure the app container takes full height on mobile */
+  .app-container {
+    min-height: 100vh;
+    position: relative;
   }
 }

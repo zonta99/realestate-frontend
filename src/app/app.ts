@@ -2,23 +2,24 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { LayoutModule } from '@angular/cdk/layout';
 import { AuthFacadeService } from './core/auth/services/auth-facade';
-import { LoadingComponent } from './shared/components/loading/loading';
-import { Navbar } from './shared/components/navbar/navbar';
+import { LoadingComponent } from './shared/components';
+import { Navbar } from './shared/components';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, CommonModule, LoadingComponent, Navbar],
+  imports: [RouterOutlet, CommonModule, LayoutModule, LoadingComponent, Navbar],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
 export class App implements OnInit {
   private authFacade = inject(AuthFacadeService);
 
-  // Check if app is loading (during auth check)
+  // Check if the app is loading (during auth check)
   isLoading = this.authFacade.isLoading;
-  // Check if user is authenticated
+  // Check if the user is authenticated
   isAuthenticated = this.authFacade.isAuthenticated;
 
   ngOnInit(): void {
@@ -39,6 +40,5 @@ export class App implements OnInit {
     } else if (storedTheme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
     }
-    // If no preference or 'auto', let CSS handle it with media queries
   }
 }

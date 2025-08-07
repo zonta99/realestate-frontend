@@ -1,115 +1,94 @@
-<!-- Mobile Bottom Navigation -->
-@if (isMobile()) {
-  <!-- Top Bar for Mobile -->
-  <mat-toolbar class="mobile-top-bar mat-surface-primary">
-    <div class="brand-section mat-flex mat-flex-align-center mat-gap-sm" routerLink="/dashboard">
-      <mat-icon class="brand-icon">home</mat-icon>
-      <span class="brand-text">CRM</span>
-    </div>
+<!-- Mobile Navigation -->
+<mat-toolbar class="mobile-toolbar" role="banner">
+  <div class="brand-section" routerLink="/dashboard">
+    <mat-icon class="brand-icon">home</mat-icon>
+    <span class="brand-text">CRM</span>
+  </div>
 
-    <div class="mat-flex-grow"></div>
+  <span class="flex-spacer"></span>
 
-    <button
-      mat-icon-button
-      [matBadge]="3"
-      matBadgeColor="accent"
-      class="notification-btn"
-      aria-label="Notifications">
-      <mat-icon>notifications</mat-icon>
-    </button>
+  <button
+    mat-icon-button
+    [matBadge]="3"
+    matBadgeColor="accent"
+    class="notification-btn"
+    aria-label="Notifications">
+    <mat-icon>notifications</mat-icon>
+  </button>
 
-    <button
-      mat-icon-button
-      [matMenuTriggerFor]="userMenu"
-      class="user-btn"
-      aria-label="User menu">
-      <div class="user-avatar mobile">{{ userDisplayInfo().initials }}</div>
-    </button>
-  </mat-toolbar>
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="userMenu"
+    class="user-btn"
+    aria-label="User menu">
+    <div class="user-avatar mobile">{{ userDisplayInfo().initials }}</div>
+  </button>
+</mat-toolbar>
 
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav mat-surface-container mat-flex mat-flex-justify-around" role="navigation" aria-label="Main navigation">
+<!-- Desktop Navigation -->
+<mat-toolbar class="desktop-toolbar" role="banner">
+  <div class="brand-section" routerLink="/dashboard" role="button" tabindex="0">
+    <mat-icon class="brand-icon">home</mat-icon>
+    <span class="brand-text">Real Estate CRM</span>
+  </div>
+
+  <nav class="desktop-nav" role="navigation" aria-label="Main navigation">
     @for (item of visibleNavItems(); track item.id) {
       <button
         mat-button
         [routerLink]="item.route"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-        class="bottom-nav-item"
-        matRipple
-        [attr.aria-label]="item.label"
-      >
-        <mat-icon
-          [matBadge]="item.badge"
-          [matBadgeHidden]="!item.badge"
-          matBadgeSize="small"
-          matBadgeColor="primary">
+        class="nav-button">
+        <mat-icon [matBadge]="item.badge" [matBadgeHidden]="!item.badge" matBadgeColor="accent">
           {{ item.icon }}
         </mat-icon>
-        <span class="nav-label"></span>
+        <span>{{ item.label }}</span>
       </button>
     }
   </nav>
-}
 
-<!-- Desktop Navigation -->
-@if (!isMobile()) {
-  <mat-toolbar class="desktop-toolbar mat-surface-primary mat-flex mat-flex-align-center" role="banner">
-    <div class="brand-section mat-flex mat-flex-align-center mat-gap-sm" routerLink="/dashboard" role="button" tabindex="0">
-      <mat-icon class="brand-icon">home</mat-icon>
-      <span class="brand-text">Real Estate CRM</span>
-    </div>
+  <span class="flex-spacer"></span>
 
-    <nav class="desktop-nav mat-flex mat-flex-align-center mat-gap-sm" role="navigation" aria-label="Main navigation">
-      @for (item of visibleNavItems(); track item.id) {
-        <button
-          mat-button
-          [routerLink]="item.route"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-          class="nav-button"
-          [attr.aria-label]="item.label"
-        >
-          <mat-icon
-            [matBadge]="item.badge"
-            [matBadgeHidden]="!item.badge"
-            matBadgeColor="accent">
-            {{ item.icon }}
-          </mat-icon>
-          <span>{{ item.label }}</span>
-        </button>
-      }
-    </nav>
+  <div class="toolbar-actions">
+    <button mat-icon-button [matBadge]="3" matBadgeColor="accent">
+      <mat-icon>notifications</mat-icon>
+    </button>
 
-    <div class="mat-flex-grow"></div>
+    <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+      <div class="user-avatar">{{ userDisplayInfo().initials }}</div>
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
 
-    <div class="toolbar-actions mat-flex mat-flex-align-center mat-gap-md">
-      <button
-        mat-icon-button
-        [matBadge]="3"
-        matBadgeColor="accent"
-        class="notification-btn"
-        aria-label="Notifications">
-        <mat-icon>notifications</mat-icon>
-      </button>
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav" role="navigation" aria-label="Mobile bottom navigation">
+  @for (item of mobileNavItems(); track item.id) {
+    <button
+      mat-button
+      [routerLink]="item.route"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+      class="bottom-nav-item"
+      [attr.aria-label]="item.label">
+      <mat-icon
+        [matBadge]="item.badge"
+        [matBadgeHidden]="!item.badge"
 
-      <button
-        mat-button
-        [matMenuTriggerFor]="userMenu"
-        class="user-menu-button"
-        aria-label="User menu">
-        <div class="user-avatar">{{ userDisplayInfo().initials }}</div>
-        <mat-icon>arrow_drop_down</mat-icon>
-      </button>
-    </div>
-  </mat-toolbar>
-}
+        class="bottom-nav-icon">
+        {{ item.icon }}
+      </mat-icon>
+      <span class="bottom-nav-label">{{ item.label }}</span>
+    </button>
+  }
+</nav>
 
 <!-- User Menu (Shared) -->
 <mat-menu #userMenu="matMenu" class="user-menu">
-  <div class="user-menu-header mat-surface-container-high mat-flex mat-flex-align-center mat-gap-md mat-padding-lg">
+  <div class="user-menu-header">
     <div class="user-avatar large">{{ userDisplayInfo().initials }}</div>
-    <div class="user-details mat-flex mat-flex-column mat-gap-xs mat-flex-1">
+    <div class="user-details">
       <div class="user-name">{{ userDisplayInfo().fullName }}</div>
       <div class="user-email">{{ userDisplayInfo().email }}</div>
       <mat-chip class="role-chip" [class]="getRoleChipClass()">
@@ -121,33 +100,33 @@
 
   <mat-divider></mat-divider>
 
-  <button mat-menu-item routerLink="/profile" class="menu-item">
+  <button mat-menu-item routerLink="/profile">
     <mat-icon>person</mat-icon>
     <span>Profile</span>
   </button>
 
   @if (hasSubordinates()) {
-    <button mat-menu-item routerLink="/users/hierarchy" class="menu-item">
+    <button mat-menu-item routerLink="/users/hierarchy">
       <mat-icon>account_tree</mat-icon>
       <span>My Team</span>
       <span class="team-count">({{ getSubordinateCount() }})</span>
     </button>
   }
 
-  <button mat-menu-item class="menu-item">
+  <button mat-menu-item>
     <mat-icon>settings</mat-icon>
     <span>Settings</span>
   </button>
 
-  <button mat-menu-item class="menu-item">
+  <button mat-menu-item>
     <mat-icon>help_outline</mat-icon>
     <span>Help & Support</span>
   </button>
 
   <mat-divider></mat-divider>
 
-  <button mat-menu-item (click)="logout()" class="logout-button menu-item">
+  <button mat-menu-item (click)="logout()" class="logout-button">
     <mat-icon>logout</mat-icon>
     <span>Sign Out</span>
   </button>
-</mat-menu> 
+</mat-menu>

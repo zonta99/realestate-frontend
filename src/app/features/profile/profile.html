@@ -1,0 +1,351 @@
+<div class="profile-container">
+  <!-- Hero Header -->
+  <div class="profile-hero">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+      <div class="profile-avatar-large">
+        <div class="avatar-circle-large">
+          {{ userDisplayInfo().initials }}
+        </div>
+        <button mat-mini-fab class="edit-avatar-btn" matTooltip="Change photo">
+          <mat-icon>photo_camera</mat-icon>
+        </button>
+      </div>
+      <div class="hero-info">
+        <h1 class="user-name">{{ userDisplayInfo().fullName }}</h1>
+        <p class="user-email">{{ userDisplayInfo().email }}</p>
+        <div class="role-badge-container">
+          <mat-chip class="role-badge" [class]="getRoleClass()">
+            <mat-icon>{{ getRoleIcon() }}</mat-icon>
+            {{ getRoleDisplayName() }}
+          </mat-chip>
+          @if (hasSubordinates()) {
+            <mat-chip class="team-badge">
+              <mat-icon>group</mat-icon>
+              {{ subordinateCount() }} team members
+            </mat-chip>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <mat-tab-group class="profile-tabs" animationDuration="300ms">
+    <!-- Personal Information Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>person</mat-icon>
+        Personal Info
+      </ng-template>
+
+      <div class="tab-content">
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>edit</mat-icon>
+            <mat-card-title>Personal Information</mat-card-title>
+            <mat-card-subtitle>Update your account details</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+              <div class="form-grid">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>First Name</mat-label>
+                  <input
+                    matInput
+                    formControlName="firstName"
+                    placeholder="Your first name"
+                    autocomplete="given-name">
+                  <mat-icon matSuffix>badge</mat-icon>
+                  @if (firstNameField()?.invalid && firstNameField()?.touched) {
+                    <mat-error>
+                      @if (firstNameField()?.errors?.['required']) {
+                        First name is required
+                      }
+                      @if (firstNameField()?.errors?.['minlength']) {
+                        First name must be at least 2 characters
+                      }
+                    </mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Last Name</mat-label>
+                  <input
+                    matInput
+                    formControlName="lastName"
+                    placeholder="Your last name"
+                    autocomplete="family-name">
+                  <mat-icon matSuffix>badge</mat-icon>
+                  @if (lastNameField()?.invalid && lastNameField()?.touched) {
+                    <mat-error>
+                      @if (lastNameField()?.errors?.['required']) {
+                        Last name is required
+                      }
+                      @if (lastNameField()?.errors?.['minlength']) {
+                        Last name must be at least 2 characters
+                      }
+                    </mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Email Address</mat-label>
+                  <input
+                    matInput
+                    formControlName="email"
+                    type="email"
+                    placeholder="your.email@company.com"
+                    autocomplete="email">
+                  <mat-icon matSuffix>email</mat-icon>
+                  @if (emailField()?.invalid && emailField()?.touched) {
+                    <mat-error>
+                      @if (emailField()?.errors?.['required']) {
+                        Email is required
+                      }
+                      @if (emailField()?.errors?.['email']) {
+                        Please enter a valid email address
+                      }
+                    </mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Username</mat-label>
+                  <input
+                    matInput
+                    formControlName="username"
+                    placeholder="Your unique username"
+                    autocomplete="username">
+                  <mat-icon matSuffix>alternate_email</mat-icon>
+                  @if (usernameField()?.invalid && usernameField()?.touched) {
+                    <mat-error>
+                      @if (usernameField()?.errors?.['required']) {
+                        Username is required
+                      }
+                      @if (usernameField()?.errors?.['minlength']) {
+                        Username must be at least 3 characters
+                      }
+                      @if (usernameField()?.errors?.['pattern']) {
+                        Username can only contain letters, numbers, and underscores
+                      }
+                    </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              @if (profileSaving()) {
+                <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+              }
+
+              <div class="form-actions">
+                <button
+                  mat-button
+                  type="button"
+                  (click)="resetProfileForm()"
+                  [disabled]="profileSaving()"
+                  class="reset-btn">
+                  <mat-icon>refresh</mat-icon>
+                  Reset Changes
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="profileForm.invalid || profileSaving() || !hasProfileChanges()"
+                  class="save-btn">
+                  @if (profileSaving()) {
+                    <ng-container>
+                      <mat-progress-spinner diameter="18" class="inline-spinner"></mat-progress-spinner>
+                      Saving...
+                    </ng-container>
+                  } @else {
+                    <ng-container>
+                      <mat-icon>save</mat-icon>
+                      Save Changes
+                    </ng-container>
+                  }
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Security Tab -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>security</mat-icon>
+        Security
+      </ng-template>
+
+      <div class="tab-content">
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>lock</mat-icon>
+            <mat-card-title>Change Password</mat-card-title>
+            <mat-card-subtitle>Keep your account secure with a strong password</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Current Password</mat-label>
+                <input
+                  matInput
+                  [type]="hideCurrentPassword() ? 'password' : 'text'"
+                  formControlName="currentPassword"
+                  placeholder="Enter your current password"
+                  autocomplete="current-password">
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="toggleCurrentPasswordVisibility()"
+                  matTooltip="Toggle password visibility">
+                  <mat-icon>{{ hideCurrentPassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                @if (currentPasswordField()?.invalid && currentPasswordField()?.touched) {
+                  <mat-error>Current password is required</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>New Password</mat-label>
+                <input
+                  matInput
+                  [type]="hideNewPassword() ? 'password' : 'text'"
+                  formControlName="newPassword"
+                  placeholder="Enter your new password"
+                  autocomplete="new-password">
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="toggleNewPasswordVisibility()"
+                  matTooltip="Toggle password visibility">
+                  <mat-icon>{{ hideNewPassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                @if (newPasswordField()?.invalid && newPasswordField()?.touched) {
+                  <mat-error>
+                    @if (newPasswordField()?.errors?.['required']) {
+                      New password is required
+                    }
+                    @if (newPasswordField()?.errors?.['minlength']) {
+                      Password must be at least 8 characters long
+                    }
+                    @if (newPasswordField()?.errors?.['passwordStrength']) {
+                      Password must include uppercase, lowercase, numbers, and special characters
+                    }
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Password Strength Indicator -->
+              @if (newPasswordField()?.value && newPasswordField()?.value.length > 0) {
+                <div class="password-strength">
+                  <div class="strength-label">Password Strength:</div>
+                  <div class="strength-bars">
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 1"></div>
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 2"></div>
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 3"></div>
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 4"></div>
+                  </div>
+                  <div class="strength-text">{{ getPasswordStrengthText() }}</div>
+                </div>
+              }
+
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Confirm New Password</mat-label>
+                <input
+                  matInput
+                  [type]="hideConfirmPassword() ? 'password' : 'text'"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm your new password"
+                  autocomplete="new-password">
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="toggleConfirmPasswordVisibility()"
+                  matTooltip="Toggle password visibility">
+                  <mat-icon>{{ hideConfirmPassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+                </button>
+                @if (confirmPasswordField()?.invalid && confirmPasswordField()?.touched) {
+                  <mat-error>
+                    @if (confirmPasswordField()?.errors?.['required']) {
+                      Please confirm your new password
+                    }
+                    @if (passwordForm.hasError('passwordMismatch')) {
+                      Passwords do not match
+                    }
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              @if (passwordSaving()) {
+                <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+              }
+
+              <div class="form-actions">
+                <button
+                  mat-button
+                  type="button"
+                  (click)="resetPasswordForm()"
+                  [disabled]="passwordSaving()"
+                  class="reset-btn">
+                  <mat-icon>clear</mat-icon>
+                  Clear Form
+                </button>
+                <button
+                  mat-raised-button
+                  color="accent"
+                  type="submit"
+                  [disabled]="passwordForm.invalid || passwordSaving()"
+                  class="save-btn">
+                  @if (passwordSaving()) {
+                    <mat-progress-spinner diameter="18" class="inline-spinner"></mat-progress-spinner>
+                    Changing...
+                  } @else {
+                    <mat-icon>lock_reset</mat-icon>
+                    Change Password
+                  }
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Security Tips Card -->
+        <mat-card class="security-tips">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>tips_and_updates</mat-icon>
+            <mat-card-title>Security Tips</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="tips-list">
+              <div class="tip-item">
+                <mat-icon>check_circle</mat-icon>
+                <span>Use a unique password for this account</span>
+              </div>
+              <div class="tip-item">
+                <mat-icon>check_circle</mat-icon>
+                <span>Include numbers, symbols, and mixed case letters</span>
+              </div>
+              <div class="tip-item">
+                <mat-icon>check_circle</mat-icon>
+                <span>Avoid using personal information in passwords</span>
+              </div>
+              <div class="tip-item">
+                <mat-icon>check_circle</mat-icon>
+                <span>Change your password regularly</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

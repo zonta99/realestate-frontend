@@ -1,10 +1,8 @@
 // src/app/shared/components/navbar/navbar.ts - Refactored with proper structure
-import { Component, inject, computed, signal, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 // Angular Material imports
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -17,6 +15,8 @@ import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
 import { MatRippleModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { LayoutModule } from '@angular/cdk/layout';
 
 import { AuthFacadeService } from '../../../core/auth/services/auth-facade';
 import { NavigationService } from '../../../core/navigation/navigation.service';
@@ -37,6 +37,8 @@ import { NavigationService } from '../../../core/navigation/navigation.service';
     MatListModule,
     MatRippleModule,
     MatChipsModule,
+    MatSidenavModule,
+    LayoutModule,
   ],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css']
@@ -44,11 +46,7 @@ import { NavigationService } from '../../../core/navigation/navigation.service';
 export class Navbar implements OnInit, OnDestroy {
   private authFacade = inject(AuthFacadeService);
   private navService = inject(NavigationService);
-  private breakpointObserver = inject(BreakpointObserver);
   private destroy$ = new Subject<void>();
-
-  // FIXED: Make breakpoint reactive with signal
-  private isMobileSignal = signal(false);
 
   // Auth state
   userDisplayInfo = this.authFacade.userDisplayInfo;
@@ -61,17 +59,14 @@ export class Navbar implements OnInit, OnDestroy {
   // Navigation
   visibleNavItems = this.navService.visibleNavItems;
 
-  // FIXED: Reactive responsive state
-  isMobile = computed(() => this.isMobileSignal());
+  // Mobile navigation - first 4 items only
+  mobileNavItems = computed(() => {
+    const items = this.visibleNavItems();
+    return items.slice(0, 4);
+  });
 
   ngOnInit(): void {
-    // FIXED: Subscribe to breakpoint changes and update signal
-    this.breakpointObserver
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(result => {
-        this.isMobileSignal.set(result.matches);
-      });
+    // Material handles responsive behavior automatically
   }
 
   ngOnDestroy(): void {

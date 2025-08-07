@@ -46,4 +46,3 @@ import { MatIconModule } from '@angular/material/icon';
   `]
 })
 export class CustomerList {}
-export { CustomerList as CustomerListComponent };

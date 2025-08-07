@@ -1,10 +1,10 @@
-<div class="mat-container mat-container-lg mat-padding-lg mat-surface">
+<div class="dashboard-container">
   <!-- Header Section -->
-  <mat-card class="dashboard-header mat-surface-primary mat-spacing-bottom-xl">
-    <mat-card-content class="mat-flex mat-flex-between mat-flex-align-start mat-padding-lg">
+  <mat-card class="dashboard-header" appearance="outlined">
+    <mat-card-content>
       <div class="header-content">
-        <h1 class="mat-typography-headline-medium mat-spacing-bottom-sm">Welcome back, {{ userDisplayInfo().fullName }}!</h1>
-        <p class="mat-typography-body-large subtitle">Here's what's happening in your real estate business</p>
+        <h1>Welcome back, {{ userDisplayInfo().fullName }}!</h1>
+        <p class="subtitle">Here's what's happening in your real estate business</p>
       </div>
       <div class="header-actions">
         <mat-chip-set class="role-chips">
@@ -18,18 +18,19 @@
   </mat-card>
 
   <!-- Quick Stats Grid -->
-  <mat-grid-list [cols]="gridCols()" rowHeight="140px" gutterSize="16px" class="stats-grid mat-spacing-bottom-xl">
-    <mat-grid-tile>
+  <div class="stats-section">
+    <h2 class="section-title">Overview</h2>
+    <div class="stats-grid">
       <mat-card class="stat-card properties-card" appearance="outlined">
         <mat-card-content>
-          <div class="stat-content mat-flex mat-flex-align-center mat-gap-md">
+          <div class="stat-content">
             <div class="stat-icon-container properties">
               <mat-icon class="stat-icon">home</mat-icon>
             </div>
-            <div class="stat-details mat-flex mat-flex-column mat-gap-xs mat-flex-1">
-              <span class="stat-number mat-typography-headline-small">24</span>
-              <span class="stat-label mat-typography-body-medium">Active Properties</span>
-              <div class="stat-trend positive mat-flex mat-flex-align-center mat-gap-xs">
+            <div class="stat-details">
+              <span class="stat-number">24</span>
+              <span class="stat-label">Active Properties</span>
+              <div class="stat-trend positive">
                 <mat-icon>trending_up</mat-icon>
                 <span>+12%</span>
               </div>
@@ -37,19 +38,17 @@
           </div>
         </mat-card-content>
       </mat-card>
-    </mat-grid-tile>
 
-    <mat-grid-tile>
       <mat-card class="stat-card customers-card" appearance="outlined">
         <mat-card-content>
-          <div class="stat-content mat-flex mat-flex-align-center mat-gap-md">
+          <div class="stat-content">
             <div class="stat-icon-container customers">
               <mat-icon class="stat-icon">people</mat-icon>
             </div>
-            <div class="stat-details mat-flex mat-flex-column mat-gap-xs mat-flex-1">
-              <span class="stat-number mat-typography-headline-small">12</span>
-              <span class="stat-label mat-typography-body-medium">Active Customers</span>
-              <div class="stat-trend positive mat-flex mat-flex-align-center mat-gap-xs">
+            <div class="stat-details">
+              <span class="stat-number">12</span>
+              <span class="stat-label">Active Customers</span>
+              <div class="stat-trend positive">
                 <mat-icon>trending_up</mat-icon>
                 <span>+8%</span>
               </div>
@@ -57,19 +56,17 @@
           </div>
         </mat-card-content>
       </mat-card>
-    </mat-grid-tile>
 
-    <mat-grid-tile>
       <mat-card class="stat-card deals-card" appearance="outlined">
         <mat-card-content>
-          <div class="stat-content mat-flex mat-flex-align-center mat-gap-md">
+          <div class="stat-content">
             <div class="stat-icon-container deals">
               <mat-icon class="stat-icon">handshake</mat-icon>
             </div>
-            <div class="stat-details mat-flex mat-flex-column mat-gap-xs mat-flex-1">
-              <span class="stat-number mat-typography-headline-small">8</span>
-              <span class="stat-label mat-typography-body-medium">Pending Deals</span>
-              <div class="stat-trend neutral mat-flex mat-flex-align-center mat-gap-xs">
+            <div class="stat-details">
+              <span class="stat-number">8</span>
+              <span class="stat-label">Pending Deals</span>
+              <div class="stat-trend neutral">
                 <mat-icon>trending_flat</mat-icon>
                 <span>0%</span>
               </div>
@@ -77,19 +74,17 @@
           </div>
         </mat-card-content>
       </mat-card>
-    </mat-grid-tile>
 
-    <mat-grid-tile>
       <mat-card class="stat-card revenue-card" appearance="outlined">
         <mat-card-content>
-          <div class="stat-content mat-flex mat-flex-align-center mat-gap-md">
+          <div class="stat-content">
             <div class="stat-icon-container revenue">
               <mat-icon class="stat-icon">attach_money</mat-icon>
             </div>
-            <div class="stat-details mat-flex mat-flex-column mat-gap-xs mat-flex-1">
-              <span class="stat-number mat-typography-headline-small">$2.4M</span>
-              <span class="stat-label mat-typography-body-medium">Monthly Revenue</span>
-              <div class="stat-trend positive mat-flex mat-flex-align-center mat-gap-xs">
+            <div class="stat-details">
+              <span class="stat-number">$2.4M</span>
+              <span class="stat-label">Monthly Revenue</span>
+              <div class="stat-trend positive">
                 <mat-icon>trending_up</mat-icon>
                 <span>+24%</span>
               </div>
@@ -97,95 +92,87 @@
           </div>
         </mat-card-content>
       </mat-card>
-    </mat-grid-tile>
-  </mat-grid-list>
+    </div>
+  </div>
 
   <!-- Quick Actions -->
-  <div class="quick-actions mat-spacing-bottom-xl">
-    <h2 class="mat-typography-headline-small mat-spacing-bottom-md">Quick Actions</h2>
-    <mat-grid-list [cols]="gridCols()" rowHeight="160px" gutterSize="16px" class="actions-grid">
+  <div class="quick-actions">
+    <h2 class="section-title">Quick Actions</h2>
+    <div class="actions-grid">
       @if (canCreateProperties()) {
-        <mat-grid-tile>
-          <mat-card class="action-card mat-flex mat-flex-column mat-flex-center" routerLink="/properties/new" appearance="outlined">
-            <mat-card-content class="mat-flex mat-flex-column mat-flex-center mat-gap-sm">
-              <mat-icon class="action-icon">add_home</mat-icon>
-              <h3 class="mat-typography-title-medium">Add Property</h3>
-              <p class="mat-typography-body-medium">List a new property</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
+        <mat-card class="action-card" routerLink="/properties/new" appearance="outlined">
+          <mat-card-content>
+            <mat-icon class="action-icon">add_home</mat-icon>
+            <h3>Add Property</h3>
+            <p>List a new property</p>
+          </mat-card-content>
+        </mat-card>
       }
 
       @if (canManageCustomers()) {
-        <mat-grid-tile>
-          <mat-card class="action-card mat-flex mat-flex-column mat-flex-center" routerLink="/customers/new" appearance="outlined">
-            <mat-card-content class="mat-flex mat-flex-column mat-flex-center mat-gap-sm">
-              <mat-icon class="action-icon">person_add</mat-icon>
-              <h3 class="mat-typography-title-medium">Add Customer</h3>
-              <p class="mat-typography-body-medium">Create new lead</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-      }
-
-      <mat-grid-tile>
-        <mat-card class="action-card mat-flex mat-flex-column mat-flex-center" routerLink="/properties" appearance="outlined">
-          <mat-card-content class="mat-flex mat-flex-column mat-flex-center mat-gap-sm">
-            <mat-icon class="action-icon">search</mat-icon>
-            <h3 class="mat-typography-title-medium">Browse Properties</h3>
-            <p class="mat-typography-body-medium">View all listings</p>
+        <mat-card class="action-card" routerLink="/customers/new" appearance="outlined">
+          <mat-card-content>
+            <mat-icon class="action-icon">person_add</mat-icon>
+            <h3>Add Customer</h3>
+            <p>Create new lead</p>
           </mat-card-content>
         </mat-card>
-      </mat-grid-tile>
+      }
+
+      <mat-card class="action-card" routerLink="/properties" appearance="outlined">
+        <mat-card-content>
+          <mat-icon class="action-icon">search</mat-icon>
+          <h3>Browse Properties</h3>
+          <p>View all listings</p>
+        </mat-card-content>
+      </mat-card>
 
       @if (canManageUsers()) {
-        <mat-grid-tile>
-          <mat-card class="action-card mat-flex mat-flex-column mat-flex-center" routerLink="/users" appearance="outlined">
-            <mat-card-content class="mat-flex mat-flex-column mat-flex-center mat-gap-sm">
-              <mat-icon class="action-icon">group</mat-icon>
-              <h3 class="mat-typography-title-medium">Manage Team</h3>
-              <p class="mat-typography-body-medium">View team members</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
+        <mat-card class="action-card" routerLink="/users" appearance="outlined">
+          <mat-card-content>
+            <mat-icon class="action-icon">group</mat-icon>
+            <h3>Manage Team</h3>
+            <p>View team members</p>
+          </mat-card-content>
+        </mat-card>
       }
-    </mat-grid-list>
+    </div>
   </div>
 
   <!-- Recent Activity -->
-  <div class="recent-activity mat-spacing-bottom-xl">
-    <mat-card appearance="outlined" class="mat-surface-container">
+  <div class="recent-activity">
+    <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title class="mat-typography-headline-small">Recent Activity</mat-card-title>
-        <mat-card-subtitle class="mat-typography-body-medium">Your latest updates</mat-card-subtitle>
+        <mat-card-title>Recent Activity</mat-card-title>
+        <mat-card-subtitle>Your latest updates</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <div class="activity-list mat-flex mat-flex-column mat-gap-md">
-          <div class="activity-item mat-flex mat-flex-align-start mat-gap-md mat-padding-md mat-surface-container-high mat-border-radius-sm">
+        <div class="activity-list">
+          <div class="activity-item">
             <div class="activity-icon-container">
               <mat-icon>home</mat-icon>
             </div>
-            <div class="activity-details mat-flex-1">
-              <p class="mat-typography-body-medium"><strong>New property added:</strong> 123 Main Street</p>
-              <span class="activity-time mat-typography-body-small">2 hours ago</span>
+            <div class="activity-details">
+              <p><strong>New property added:</strong> 123 Main Street</p>
+              <span class="activity-time">2 hours ago</span>
             </div>
           </div>
-          <div class="activity-item mat-flex mat-flex-align-start mat-gap-md mat-padding-md mat-surface-container-high mat-border-radius-sm">
+          <div class="activity-item">
             <div class="activity-icon-container">
               <mat-icon>person</mat-icon>
             </div>
-            <div class="activity-details mat-flex-1">
-              <p class="mat-typography-body-medium"><strong>Customer inquiry:</strong> John Doe interested in downtown condo</p>
-              <span class="activity-time mat-typography-body-small">4 hours ago</span>
+            <div class="activity-details">
+              <p><strong>Customer inquiry:</strong> John Doe interested in downtown condo</p>
+              <span class="activity-time">4 hours ago</span>
             </div>
           </div>
-          <div class="activity-item mat-flex mat-flex-align-start mat-gap-md mat-padding-md mat-surface-container-high mat-border-radius-sm">
+          <div class="activity-item">
             <div class="activity-icon-container">
               <mat-icon>handshake</mat-icon>
             </div>
-            <div class="activity-details mat-flex-1">
-              <p class="mat-typography-body-medium"><strong>Deal closed:</strong> 456 Oak Avenue - $650,000</p>
-              <span class="activity-time mat-typography-body-small">1 day ago</span>
+            <div class="activity-details">
+              <p><strong>Deal closed:</strong> 456 Oak Avenue - $650,000</p>
+              <span class="activity-time">1 day ago</span>
             </div>
           </div>
         </div>
@@ -195,4 +182,4 @@
       </mat-card-actions>
     </mat-card>
   </div>
-</div> 
+</div>

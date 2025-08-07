@@ -8,9 +8,9 @@
     </app-loading>
   } @else {
     @if (isAuthenticated()) {
-      <app-navbar></app-navbar>
+      <app-navbar/>
     }
-    <main class="mat-flex mat-flex-column mat-flex-1">
+    <main class="main-content">
       <router-outlet/>
     </main>
   }

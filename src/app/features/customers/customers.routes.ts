@@ -11,30 +11,30 @@ export const customerRoutes: Routes = [
     path: 'list',
     loadComponent: () =>
       import('./components/customer-list/customer-list')
-        .then(m => m.CustomerListComponent)
+        .then(m => m.CustomerList)
   },
   {
     path: 'new',
     loadComponent: () =>
       import('./components/customer-form/customer-form')
-        .then(m => m.CustomerFormComponent)
+        .then(m => m.CustomerForm)
   },
   {
     path: 'edit/:id',
     loadComponent: () =>
       import('./components/customer-form/customer-form')
-        .then(m => m.CustomerFormComponent)
+        .then(m => m.CustomerForm)
   },
   {
     path: 'view/:id',
     loadComponent: () =>
       import('./components/customer-detail/customer-detail')
-        .then(m => m.CustomerDetailComponent)
+        .then(m => m.CustomerDetail)
   },
   {
     path: ':id/matches',
     loadComponent: () =>
       import('./components/customer-matches/customer-matches')
-        .then(m => m.CustomerMatchesComponent)
+        .then(m => m.CustomerMatches)
   }
 ];

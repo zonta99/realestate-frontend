@@ -40,4 +40,3 @@ import { MatIconModule } from '@angular/material/icon';
   `]
 })
 export class CustomerForm {}
-export { CustomerForm as CustomerFormComponent };
