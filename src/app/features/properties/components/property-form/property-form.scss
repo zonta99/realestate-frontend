@@ -1,0 +1,86 @@
+/* src/app/features/properties/components/property-form/property-form.scss */
+
+/* Using Material Design 3 tokens and minimal custom styling */
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content-container {
+  padding: var(--mat-sys-spacing-large, 24px);
+  display: flex;
+  justify-content: center;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--mat-sys-spacing-large, 24px);
+  max-width: 1200px;
+  width: 100%;
+  align-items: start;
+}
+
+.form-progress {
+  margin-bottom: var(--mat-sys-spacing-medium, 16px);
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mat-sys-spacing-large, 24px);
+  margin-top: var(--mat-sys-spacing-medium, 16px);
+}
+
+.error-card {
+  margin-top: var(--mat-sys-spacing-medium, 16px);
+  border-left: 4px solid var(--mat-sys-color-error);
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: var(--mat-sys-spacing-small, 8px);
+}
+
+.tips-avatar {
+  background-color: var(--mat-sys-color-primary-container);
+  color: var(--mat-sys-color-on-primary-container);
+}
+
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mat-sys-spacing-medium, 16px);
+}
+
+.tip-item {
+  display: flex;
+  align-items: center;
+  gap: var(--mat-sys-spacing-medium, 16px);
+}
+
+.submit-button {
+  min-width: 140px;
+
+  span {
+    margin-left: var(--mat-sys-spacing-small, 8px);
+  }
+}
+
+/* Responsive design using Material Design breakpoints */
+@media (max-width: 968px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 600px) {
+  .content-container {
+    padding: var(--mat-sys-spacing-medium, 16px);
+  }
+
+  .form-layout {
+    gap: var(--mat-sys-spacing-medium, 16px);
+  }
+}

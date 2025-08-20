@@ -13,7 +13,7 @@
     matBadgeColor="accent"
     class="notification-btn"
     aria-label="Notifications">
-    <mat-icon>notifications</mat-icon>
+    <mat-icon aria-hidden="false">notifications</mat-icon>
   </button>
 
   <button
@@ -40,7 +40,7 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
         class="nav-button">
-        <mat-icon [matBadge]="item.badge" [matBadgeHidden]="!item.badge" matBadgeColor="accent">
+        <mat-icon [matBadge]="item.badge" [matBadgeHidden]="!item.badge" matBadgeColor="accent" aria-hidden="false">
           {{ item.icon }}
         </mat-icon>
         <span>{{ item.label }}</span>
@@ -52,7 +52,7 @@
 
   <div class="toolbar-actions">
     <button mat-icon-button [matBadge]="3" matBadgeColor="accent">
-      <mat-icon>notifications</mat-icon>
+      <mat-icon aria-hidden="false">notifications</mat-icon>
     </button>
 
     <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
@@ -75,7 +75,7 @@
       <mat-icon
         [matBadge]="item.badge"
         [matBadgeHidden]="!item.badge"
-
+        aria-hidden="false"
         class="bottom-nav-icon">
         {{ item.icon }}
       </mat-icon>

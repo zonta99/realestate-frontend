@@ -14,19 +14,19 @@ export const propertyRoutes: Routes = [
         .then(m => m.PropertyListComponent)
   },
   {
-    path: 'new',
+    path: 'add',
     loadComponent: () =>
       import('./components/property-form/property-form')
         .then(m => m.PropertyFormComponent)
   },
   {
-    path: 'edit/:id',
+    path: ':id/edit',
     loadComponent: () =>
       import('./components/property-form/property-form')
         .then(m => m.PropertyFormComponent)
   },
   {
-    path: 'view/:id',
+    path: ':id',
     loadComponent: () =>
       import('./components/property-detail/property-detail')
         .then(m => m.PropertyDetailComponent)

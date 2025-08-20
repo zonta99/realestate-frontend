@@ -1,0 +1,183 @@
+<!-- src/app/features/properties/components/property-form/property-form.html -->
+<div class="mat-app-background">
+  <!-- Header using Material Toolbar -->
+  <mat-toolbar color="primary" class="mat-elevation-2">
+    <button
+      mat-icon-button
+      (click)="goBack()"
+      [disabled]="creating()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="mat-headline-medium">Add New Property</span>
+    <span class="spacer"></span>
+  </mat-toolbar>
+
+  <!-- Content Container -->
+  <div class="content-container">
+    <div class="form-layout">
+      <!-- Main Form Card -->
+      <mat-card appearance="outlined" class="form-card mat-elevation-2">
+        <mat-card-header>
+          <div mat-card-avatar>
+            <mat-icon>home</mat-icon>
+          </div>
+          <mat-card-title class="mat-headline-small">Property Details</mat-card-title>
+          <mat-card-subtitle class="mat-body-medium">Fill in the information to create a new property</mat-card-subtitle>
+        </mat-card-header>
+
+        <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()">
+          <mat-card-content>
+            @if (creating()) {
+              <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+            }
+
+            <div class="form-fields">
+              <!-- Title Field -->
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Property Title</mat-label>
+                <input
+                  matInput
+                  formControlName="title"
+                  placeholder="Enter property title"
+                  [disabled]="creating()">
+                <mat-icon matSuffix>title</mat-icon>
+                @if (propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched) {
+                  <mat-error>
+                    @if (propertyForm.get('title')?.hasError('required')) {
+                      Title is required
+                    }
+                    @if (propertyForm.get('title')?.hasError('minlength')) {
+                      Title must be at least 3 characters long
+                    }
+                    @if (propertyForm.get('title')?.hasError('maxlength')) {
+                      Title cannot exceed 200 characters
+                    }
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Description Field -->
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Description</mat-label>
+                <textarea
+                  matInput
+                  formControlName="description"
+                  placeholder="Enter property description"
+                  rows="4"
+                  [disabled]="creating()">
+                </textarea>
+                <mat-icon matSuffix>description</mat-icon>
+                @if (propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched) {
+                  <mat-error>
+                    @if (propertyForm.get('description')?.hasError('required')) {
+                      Description is required
+                    }
+                    @if (propertyForm.get('description')?.hasError('minlength')) {
+                      Description must be at least 10 characters long
+                    }
+                    @if (propertyForm.get('description')?.hasError('maxlength')) {
+                      Description cannot exceed 1000 characters
+                    }
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- Price Field -->
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Price</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  formControlName="price"
+                  placeholder="0"
+                  [disabled]="creating()">
+                <span matTextPrefix>$&nbsp;</span>
+                <mat-icon matSuffix>attach_money</mat-icon>
+                @if (propertyForm.get('price')?.invalid && propertyForm.get('price')?.touched) {
+                  <mat-error>
+                    @if (propertyForm.get('price')?.hasError('required')) {
+                      Price is required
+                    }
+                    @if (propertyForm.get('price')?.hasError('min')) {
+                      Price must be greater than 0
+                    }
+                    @if (propertyForm.get('price')?.hasError('max')) {
+                      Price cannot exceed $50,000,000
+                    }
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            @if (error()) {
+              <mat-card appearance="outlined" class="error-card">
+                <mat-card-content class="error-content">
+                  <mat-icon color="warn">error</mat-icon>
+                  <span class="mat-body-medium">{{ error()?.message || 'An error occurred while creating the property' }}</span>
+                </mat-card-content>
+              </mat-card>
+            }
+          </mat-card-content>
+
+          <mat-card-actions align="end">
+            <button
+              mat-button
+              type="button"
+              (click)="resetForm()"
+              [disabled]="creating()">
+              <mat-icon>clear</mat-icon>
+              Reset Form
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="propertyForm.invalid || creating()"
+              class="submit-button">
+              <ng-container>
+              @if (creating()) {
+                <mat-progress-spinner diameter="18"></mat-progress-spinner>
+                <span>Creating...</span>
+              } @else {
+                <mat-icon>add</mat-icon>
+                <span>Create Property</span>
+              }
+              </ng-container>
+            </button>
+          </mat-card-actions>
+        </form>
+      </mat-card>
+
+      <!-- Property Creation Tips -->
+      <mat-card appearance="outlined" class="tips-card mat-elevation-1">
+        <mat-card-header>
+          <div mat-card-avatar class="tips-avatar">
+            <mat-icon>lightbulb</mat-icon>
+          </div>
+          <mat-card-title class="mat-headline-small">Property Creation Tips</mat-card-title>
+          <mat-card-subtitle class="mat-body-medium">Best practices for creating properties</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="tips-list">
+            <div class="tip-item">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span class="mat-body-medium">Use a descriptive and engaging title</span>
+            </div>
+            <div class="tip-item">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span class="mat-body-medium">Provide detailed information about the property</span>
+            </div>
+            <div class="tip-item">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span class="mat-body-medium">Set a competitive and realistic price</span>
+            </div>
+            <div class="tip-item">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span class="mat-body-medium">You can add custom attributes after creation</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -309,8 +309,10 @@
                     <mat-progress-spinner diameter="18" class="inline-spinner"></mat-progress-spinner>
                     Changing...
                   } @else {
-                    <mat-icon>lock_reset</mat-icon>
-                    Change Password
+                    <ng-container>
+                      <mat-icon>lock_reset</mat-icon>
+                      Change Password
+                    </ng-container>
                   }
                 </button>
               </div>

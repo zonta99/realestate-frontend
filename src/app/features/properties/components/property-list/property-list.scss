@@ -1,0 +1,109 @@
+/* src/app/features/properties/components/property-list/property-list.component.scss */
+
+/* Using Material Design 3 tokens and minimal custom styling */
+.spacer {
+  flex: 1 1 auto;
+}
+
+.add-button {
+  margin-left: var(--mat-sys-spacing-medium, 16px);
+}
+
+.content-container {
+  padding: var(--mat-sys-spacing-large, 24px);
+  gap: var(--mat-sys-spacing-large, 24px);
+  display: flex;
+  flex-direction: column;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--mat-sys-spacing-medium, 16px);
+}
+
+.properties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--mat-sys-spacing-large, 24px);
+}
+
+.property-card {
+  position: relative;
+}
+
+.card-menu {
+  position: absolute;
+  top: var(--mat-sys-spacing-small, 8px);
+  right: var(--mat-sys-spacing-small, 8px);
+}
+
+.status-chip {
+  position: absolute;
+  top: var(--mat-sys-spacing-medium, 16px);
+  right: var(--mat-sys-spacing-extra-large, 48px);
+}
+
+.property-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: var(--mat-sys-spacing-medium, 16px);
+}
+
+.price-container {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mat-sys-spacing-small, 8px);
+}
+
+.price-value {
+  color: var(--mat-sys-color-primary);
+}
+
+.property-meta {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--mat-sys-spacing-medium, 16px);
+  background-color: var(--mat-sys-color-surface-variant);
+}
+
+.loading-content,
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mat-sys-spacing-medium, 16px);
+  padding: var(--mat-sys-spacing-extra-large, 48px);
+  text-align: center;
+}
+
+.empty-icon,
+.error-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+}
+
+.empty-icon {
+  color: var(--mat-sys-color-outline);
+}
+
+/* Responsive breakpoints using Material Design guidelines */
+@media (max-width: 840px) {
+  .properties-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .content-container {
+    padding: var(--mat-sys-spacing-medium, 16px);
+  }
+}

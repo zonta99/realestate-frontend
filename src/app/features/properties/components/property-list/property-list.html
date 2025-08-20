@@ -1,0 +1,231 @@
+<!-- src/app/features/properties/components/property-list/property-list.component.html -->
+<div class="mat-app-background">
+  <!-- Header using Material Toolbar -->
+  <mat-toolbar color="primary" class="mat-elevation-2">
+    <span class="mat-headline-medium">Properties</span>
+    <span class="spacer"></span>
+    @if (pagination().totalElements > 0) {
+      <span class="mat-body-medium">
+        {{ pagination().totalElements }} properties found
+      </span>
+    }
+    <button
+      mat-raised-button
+      color="accent"
+      (click)="addProperty()"
+      class="add-button">
+      <mat-icon>add</mat-icon>
+      Add Property
+    </button>
+  </mat-toolbar>
+
+  <!-- Content Container -->
+  <div class="content-container">
+    <!-- Filters -->
+    <mat-card appearance="outlined" class="filters-card mat-elevation-1">
+      <mat-card-header>
+        <mat-card-title class="mat-headline-small">Filter Properties</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="filtersForm" class="filters-form">
+          <div class="filters-grid">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Search properties</mat-label>
+              <input
+                matInput
+                formControlName="search"
+                placeholder="Search by title or description">
+              <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="">All Statuses</mat-option>
+                <mat-option value="ACTIVE">Active</mat-option>
+                <mat-option value="PENDING">Pending</mat-option>
+                <mat-option value="SOLD">Sold</mat-option>
+                <mat-option value="INACTIVE">Inactive</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Min Price</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="minPrice"
+                placeholder="0">
+              <span matTextPrefix>$</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Max Price</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="maxPrice"
+                placeholder="No limit">
+              <span matTextPrefix>$</span>
+            </mat-form-field>
+          </div>
+        </form>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button
+          mat-button
+          type="button"
+          (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="applyFilters()">
+          <mat-icon>filter_list</mat-icon>
+          Apply Filters
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <mat-card appearance="outlined" class="mat-elevation-1">
+        <mat-card-content class="loading-content">
+          <mat-progress-spinner diameter="50"></mat-progress-spinner>
+          <p class="mat-body-large">Loading properties...</p>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Properties List -->
+    @if (!loading() && properties().length > 0) {
+      <div class="properties-grid">
+        @for (property of properties(); track property.id) {
+          <mat-card appearance="outlined" class="property-card mat-elevation-2">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>home</mat-icon>
+              </div>
+              <mat-card-title class="mat-headline-small">{{ property.title }}</mat-card-title>
+              <mat-card-subtitle class="mat-body-medium">Agent: {{ property.agentName }}</mat-card-subtitle>
+              <div class="card-menu">
+                <button mat-icon-button [matMenuTriggerFor]="propertyMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #propertyMenu="matMenu">
+                  <button mat-menu-item (click)="viewProperty(property.id)">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                  <button mat-menu-item (click)="editProperty(property.id)">
+                    <mat-icon>edit</mat-icon>
+                    Edit Property
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteProperty(property.id)">
+                    <mat-icon color="warn">delete</mat-icon>
+                    Delete Property
+                  </button>
+                </mat-menu>
+              </div>
+              <mat-chip-set class="status-chip">
+                <mat-chip [highlighted]="true">{{ property.status }}</mat-chip>
+              </mat-chip-set>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p class="mat-body-medium property-description">{{ property.description }}</p>
+              <div class="price-container">
+                <span class="mat-body-small">Price:</span>
+                <span class="mat-headline-medium price-value">${{ property.price | number:'1.2-2' }}</span>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button
+                mat-button
+                color="primary"
+                (click)="viewProperty(property.id)">
+                <mat-icon>visibility</mat-icon>
+                View Details
+              </button>
+              <button
+                mat-button
+                (click)="editProperty(property.id)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            </mat-card-actions>
+
+            <mat-card-footer class="property-meta">
+              <small class="mat-caption">Created: {{ property.createdDate | date:'short' }}</small>
+              <small class="mat-caption">Updated: {{ property.updatedDate | date:'short' }}</small>
+            </mat-card-footer>
+          </mat-card>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (pagination().totalPages > 1) {
+        <mat-paginator
+          class="mat-elevation-1"
+          [length]="pagination().totalElements"
+          [pageSize]="pagination().pageSize"
+          [pageIndex]="pagination().currentPage"
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      }
+    }
+
+    <!-- Empty State -->
+    @if (!loading() && properties().length === 0) {
+      <mat-card appearance="outlined" class="mat-elevation-1">
+        <mat-card-content class="empty-state">
+          <mat-icon class="empty-icon">home_work</mat-icon>
+          <h2 class="mat-headline-medium">No Properties Found</h2>
+          <p class="mat-body-large">There are no properties matching your current filters.</p>
+        </mat-card-content>
+        <mat-card-actions align="start">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="addProperty()">
+            <mat-icon>add</mat-icon>
+            Add First Property
+          </button>
+          <button
+            mat-button
+            (click)="clearFilters()">
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <mat-card appearance="outlined" class="mat-elevation-1">
+        <mat-card-content class="error-state">
+          <mat-icon color="warn" class="error-icon">error</mat-icon>
+          <h2 class="mat-headline-medium">Error Loading Properties</h2>
+          <p class="mat-body-large">{{ error()?.message || 'An error occurred while loading properties' }}</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="retryLoad()">
+            <mat-icon>refresh</mat-icon>
+            Try Again
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    }
+  </div>
+</div>

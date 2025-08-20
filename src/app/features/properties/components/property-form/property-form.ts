@@ -1,145 +1,91 @@
 // src/app/features/properties/components/property-form/property-form.ts
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { PropertyActions } from '../../store/property.actions';
+import { selectCreating, selectError } from '../../store/property.selectors';
 
 @Component({
   selector: 'app-property-form',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
-  template: `
-    <div class="page-layout">
-      <header class="page-header">
-        <h1 class="mat-headline-4">Property Form</h1>
-        <div class="header-actions">
-          <button mat-button>
-            <mat-icon>arrow_back</mat-icon>
-            Back to List
-          </button>
-        </div>
-      </header>
-
-      <main class="page-content">
-        <mat-card class="content-card">
-          <mat-card-content>
-            <p>Property form will be implemented here...</p>
-            <p>This will include dynamic attribute form builder.</p>
-          </mat-card-content>
-        </mat-card>
-      </main>
-    </div>
-  `,
-  styles: [`
-    /* Modern CSS Grid layout using Material Design 3 tokens */
-    .page-layout {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: var(--mat-sys-spacing-lg);
-      min-height: 100vh;
-      padding: var(--mat-sys-spacing-lg);
-      background: var(--mat-sys-background);
-    }
-
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--mat-sys-spacing-md);
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .page-header h1 {
-      margin: 0;
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-headline-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-headline-medium-font-size);
-      font-weight: var(--mat-sys-typescale-headline-medium-font-weight);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: var(--mat-sys-spacing-sm);
-    }
-
-    .header-actions button {
-      display: flex;
-      align-items: center;
-      gap: var(--mat-sys-spacing-xs);
-      height: 40px;
-      border-radius: var(--mat-sys-shape-corner-medium);
-      font-family: var(--mat-sys-typescale-label-large-font-family-name);
-      font-size: var(--mat-sys-typescale-label-large-font-size);
-      color: var(--mat-sys-on-surface);
-    }
-
-    .page-content {
-      display: flex;
-      flex-direction: column;
-      gap: var(--mat-sys-spacing-md);
-    }
-
-    .content-card {
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .content-card mat-card-content {
-      padding: var(--mat-sys-spacing-lg);
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-body-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-body-medium-font-size);
-      line-height: var(--mat-sys-typescale-body-medium-line-height);
-    }
-
-    /* Responsive design using container queries */
-    @container (max-width: 768px) {
-      .page-layout {
-        padding: var(--mat-sys-spacing-md);
-        gap: var(--mat-sys-spacing-md);
-      }
-
-      .page-header {
-        flex-direction: column;
-        gap: var(--mat-sys-spacing-md);
-        align-items: stretch;
-      }
-
-      .header-actions button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .page-header h1 {
-        text-align: center;
-        font-size: var(--mat-sys-typescale-headline-small-font-size);
-      }
-    }
-
-    /* High contrast mode support */
-    @media (prefers-contrast: more) {
-      .page-header {
-        border: 2px solid var(--mat-sys-outline);
-      }
-
-      .content-card {
-        border: 2px solid var(--mat-sys-outline);
-      }
-    }
-
-    /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
-      .page-layout,
-      .page-header,
-      .content-card {
-        transition: none;
-      }
-    }
-  `]
+  templateUrl: './property-form.html',
+  styleUrl: './property-form.scss',
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatToolbarModule
+  ]
 })
-export class PropertyForm {}
-export { PropertyForm as PropertyFormComponent };
+export class PropertyFormComponent {
+  private fb = inject(FormBuilder);
+  private store = inject(Store);
+  private router = inject(Router);
+
+  // Signals for reactive state
+  creating = this.store.selectSignal(selectCreating);
+  error = this.store.selectSignal(selectError);
+
+  // Reactive form
+  propertyForm = this.fb.group({
+    title: ['', [
+      Validators.required,
+      Validators.minLength(3),
+      Validators.maxLength(200)
+    ]],
+    description: ['', [
+      Validators.required,
+      Validators.minLength(10),
+      Validators.maxLength(1000)
+    ]],
+    price: [null as number | null, [
+      Validators.required,
+      Validators.min(1),
+      Validators.max(50000000)
+    ]]
+  });
+
+  onSubmit(): void {
+    if (this.propertyForm.valid && !this.creating()) {
+      const formValue = this.propertyForm.getRawValue();
+      this.store.dispatch(PropertyActions.createProperty({
+        property: {
+          title: formValue.title!,
+          description: formValue.description!,
+          price: formValue.price!
+        }
+      }));
+    }
+  }
+
+  resetForm(): void {
+    this.propertyForm.reset();
+    this.store.dispatch(PropertyActions.clearError());
+  }
+
+  goBack(): void {
+    this.router.navigate(['/properties']);
+  }
+}
+
+// Export alias for consistency
+export { PropertyFormComponent as PropertyForm };
