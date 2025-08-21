@@ -1,0 +1,454 @@
+/* src/app/features/properties/components/property-wizard/property-wizard.scss */
+
+.mat-app-background {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  span {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wizard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+// Stepper Styles
+.stepper-card {
+  .stepper-content {
+    padding: 1rem 2rem;
+  }
+
+  .wizard-stepper {
+    .step-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
+      }
+    }
+
+    // Override Material stepper styles for better visual hierarchy
+    ::ng-deep {
+      .mat-step-header {
+        .mat-step-icon {
+          background-color: var(--mat-primary-color);
+          color: white;
+        }
+
+        .mat-step-icon-selected {
+          background-color: var(--mat-accent-color);
+        }
+
+        .mat-step-icon-state-done {
+          background-color: var(--mat-primary-color);
+        }
+
+        .mat-step-icon-not-touched {
+          background-color: rgba(0, 0, 0, 0.26);
+        }
+      }
+
+      .mat-horizontal-stepper-header-container {
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+// Step Content Styles
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// Form Card Styles
+.form-card,
+.attributes-card,
+.review-card,
+.edit-form-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+
+  .mat-card-header {
+    padding-bottom: 0;
+
+    .mat-card-avatar {
+      mat-icon {
+        font-size: 1.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        color: var(--mat-primary-color);
+      }
+    }
+  }
+
+  .mat-card-content {
+    flex: 1;
+    padding-top: 1rem;
+  }
+
+  .form-progress {
+    margin-bottom: 1rem;
+  }
+
+  .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .error-card {
+    margin-top: 1rem;
+    border-left: 4px solid var(--mat-warn-color);
+
+    .error-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+
+      mat-icon {
+        font-size: 1.25rem;
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+  }
+
+  .submit-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    mat-progress-spinner {
+      margin: 0;
+    }
+  }
+}
+
+// Attributes Step Specific Styles
+.attributes-card {
+  .waiting-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    text-align: center;
+
+    .waiting-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      color: rgba(0, 0, 0, 0.4);
+      animation: pulse 2s ease-in-out infinite alternate;
+    }
+
+    h3, p {
+      margin: 0;
+    }
+
+    p {
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+@keyframes pulse {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+// Review Step Specific Styles
+.review-card {
+  .review-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .property-summary {
+      text-align: center;
+
+      h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--mat-primary-color);
+      }
+
+      .mat-body-large {
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--mat-accent-color);
+      }
+
+      .mat-body-medium {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    .attributes-summary {
+      h4 {
+        margin: 0 0 1rem 0;
+        color: var(--mat-primary-color);
+      }
+
+      .attribute-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .attribute-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem;
+          background-color: rgba(0, 0, 0, 0.02);
+          border-radius: 4px;
+          border-left: 3px solid var(--mat-primary-color);
+
+          .attribute-name {
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.87);
+          }
+
+          .attribute-value {
+            color: rgba(0, 0, 0, 0.6);
+            text-align: right;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .no-attributes {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.6);
+        font-style: italic;
+        text-align: center;
+        padding: 2rem;
+      }
+    }
+
+    .error-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 2rem;
+      color: rgba(0, 0, 0, 0.6);
+
+      mat-icon {
+        font-size: 1.5rem;
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .content-container {
+    padding: 1rem;
+  }
+
+  .stepper-card {
+    .stepper-content {
+      padding: 0.5rem 1rem;
+    }
+
+    .wizard-stepper {
+      .step-label {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+        font-size: 0.875rem;
+
+        mat-icon {
+          font-size: 0.875rem;
+          width: 0.875rem;
+          height: 0.875rem;
+        }
+      }
+    }
+  }
+
+  .form-card,
+  .attributes-card,
+  .review-card,
+  .edit-form-card {
+    .form-fields {
+      gap: 0.75rem;
+    }
+
+    .mat-card-actions {
+      flex-direction: column;
+      align-items: stretch;
+
+      button {
+        justify-content: center;
+        margin: 0.25rem 0;
+      }
+    }
+  }
+
+  .progress-indicator {
+    display: none; // Hide on mobile to save space
+  }
+
+  .review-card {
+    .review-content {
+      .attributes-summary {
+        .attribute-list {
+          .attribute-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+
+            .attribute-value {
+              text-align: left;
+              max-width: none;
+              white-space: normal;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .content-container {
+    padding: 0.5rem;
+  }
+
+  .wizard-layout {
+    gap: 1rem;
+  }
+
+  .stepper-card {
+    .wizard-stepper {
+      ::ng-deep {
+        .mat-horizontal-stepper-header-container {
+          flex-wrap: wrap;
+        }
+
+        .mat-horizontal-stepper-header {
+          flex: 1;
+          min-width: 120px;
+        }
+      }
+    }
+  }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .attributes-card {
+    .waiting-content {
+      .waiting-icon {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+
+  .review-card {
+    .review-content {
+      .property-summary {
+        .mat-body-medium {
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+
+      .attributes-summary {
+        .attribute-list {
+          .attribute-item {
+            background-color: rgba(255, 255, 255, 0.05);
+
+            .attribute-name {
+              color: rgba(255, 255, 255, 0.87);
+            }
+
+            .attribute-value {
+              color: rgba(255, 255, 255, 0.6);
+            }
+          }
+        }
+
+        .no-attributes {
+          color: rgba(255, 255, 255, 0.6);
+        }
+      }
+
+      .error-content {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+  }
+}
+
+// Print Styles
+@media print {
+  .mat-toolbar {
+    display: none;
+  }
+
+  .stepper-card {
+    display: none;
+  }
+
+  .mat-card-actions {
+    display: none;
+  }
+
+  .form-progress {
+    display: none;
+  }
+}

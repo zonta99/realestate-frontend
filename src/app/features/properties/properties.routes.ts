@@ -16,14 +16,14 @@ export const propertyRoutes: Routes = [
   {
     path: 'add',
     loadComponent: () =>
-      import('./components/property-form/property-form')
-        .then(m => m.PropertyFormComponent)
+      import('./components/property-wizard/property-wizard')
+        .then(m => m.PropertyWizardComponent)
   },
   {
     path: ':id/edit',
     loadComponent: () =>
-      import('./components/property-form/property-form')
-        .then(m => m.PropertyFormComponent)
+      import('./components/property-wizard/property-wizard')
+        .then(m => m.PropertyWizardComponent)
   },
   {
     path: ':id',

@@ -14,6 +14,7 @@ import { PropertyActions } from '../../store/property.actions';
 import { selectSelectedProperty, selectLoading, selectError } from '../../store/property.selectors';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { AttributeDisplayComponent } from '../../../attributes/components/attribute-display/attribute-display';
+import { AttributeManagerComponent } from '../../../attributes/components/attribute-manager/attribute-manager';
 import { PropertyAttribute, PropertyValue, PropertyStatus } from '../../models/property.interface';
 
 @Component({

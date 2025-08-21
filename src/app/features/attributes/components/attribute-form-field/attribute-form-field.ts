@@ -53,7 +53,7 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
   @Input({ required: true }) attribute!: PropertyAttribute;
   @Input() value?: PropertyValue;
   @Input() disabled = false;
-  @Output() valueChange = new EventEmitter<{ attributeId: number; value: any }>();
+  @Output() valueChange = new EventEmitter<{ attributeId: number; value: any; isValid: boolean }>();
 
   // Expose enum for template
   readonly PropertyAttributeDataType = PropertyAttributeDataType;
@@ -124,19 +124,18 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
     this.formControl.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => {
-        if (this.formControl.valid) {
-          let processedValue = value;
+        let processedValue = value;
 
-          // Process value based on data type
-          if (this.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT) {
-            processedValue = this.attributeService.stringifyMultiSelectValue(this.multiSelectValues());
-          }
-
-          this.valueChange.emit({
-            attributeId: this.attribute.id,
-            value: processedValue
-          });
+        // Process value based on data type
+        if (this.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT) {
+          processedValue = this.attributeService.stringifyMultiSelectValue(this.multiSelectValues());
         }
+
+        this.valueChange.emit({
+          attributeId: this.attribute.id,
+          value: processedValue,
+          isValid: this.formControl.valid
+        });
       });
   }
 
@@ -178,7 +177,8 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
     const stringValue = this.attributeService.stringifyMultiSelectValue(this.multiSelectValues());
     this.valueChange.emit({
       attributeId: this.attribute.id,
-      value: stringValue
+      value: stringValue,
+      isValid: this.formControl.valid
     });
   }
 

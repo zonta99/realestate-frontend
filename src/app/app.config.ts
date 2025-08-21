@@ -12,6 +12,7 @@ import { appReducers } from './core/store/app.reducer';
 import { appEffects } from './core/store/app.effects';
 import { authInterceptor } from './core/auth/interceptors/auth-interceptor';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
+import {provideNativeDateAdapter} from '@angular/material/core';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -24,6 +25,9 @@ export const appConfig: ApplicationConfig = {
     provideStore(appReducers),
     provideEffects(appEffects),
     provideRouterStore(),
+
+    //datepicker provider
+    provideNativeDateAdapter(),
 
     // DevTools (only in development)
     provideStoreDevtools({

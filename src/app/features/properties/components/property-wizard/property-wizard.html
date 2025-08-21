@@ -1,0 +1,517 @@
+<!-- src/app/features/properties/components/property-wizard/property-wizard.html -->
+<div class="mat-app-background">
+  <!-- Header Toolbar -->
+  <mat-toolbar color="primary" class="mat-elevation-2">
+    <button
+      mat-icon-button
+      (click)="goBack()"
+      [disabled]="creating()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="mat-headline-medium">
+      @if (isEditMode()) {
+        Edit Property
+      } @else {
+        Add New Property
+      }
+    </span>
+    <span class="spacer"></span>
+
+    <!-- Progress indicator -->
+    <div class="progress-indicator">
+      <span class="mat-body-medium">
+        Step {{ currentStep() + 1 }} of {{ isEditMode() ? 2 : 3 }}
+      </span>
+    </div>
+  </mat-toolbar>
+
+  <!-- Content Container -->
+  <div class="content-container">
+    <div class="wizard-layout">
+
+      <!-- Step Navigation (Stepper) -->
+      <mat-card class="stepper-card mat-elevation-2">
+        <mat-card-content class="stepper-content">
+          <mat-horizontal-stepper
+            [selectedIndex]="currentStep()"
+            [linear]="false"
+            class="wizard-stepper">
+
+            <!-- Step 1: Property Details -->
+            <mat-step
+              [completed]="isStepCompleted(WizardStep.PROPERTY_DETAILS)"
+              [editable]="canAccessStep(WizardStep.PROPERTY_DETAILS)">
+              <ng-template matStepLabel>
+                <div class="step-label">
+                  <mat-icon>{{ getStepIcon(WizardStep.PROPERTY_DETAILS) }}</mat-icon>
+                  {{ getStepLabel(WizardStep.PROPERTY_DETAILS) }}
+                </div>
+              </ng-template>
+            </mat-step>
+
+            <!-- Step 2: Attributes -->
+            <mat-step
+              [completed]="isStepCompleted(WizardStep.ATTRIBUTES)"
+              [editable]="canAccessStep(WizardStep.ATTRIBUTES)">
+              <ng-template matStepLabel>
+                <div class="step-label">
+                  <mat-icon>{{ getStepIcon(WizardStep.ATTRIBUTES) }}</mat-icon>
+                  {{ getStepLabel(WizardStep.ATTRIBUTES) }}
+                </div>
+              </ng-template>
+            </mat-step>
+
+            <!-- Step 3: Review (only for create mode) -->
+            @if (!isEditMode()) {
+              <mat-step
+                [completed]="isStepCompleted(WizardStep.REVIEW)"
+                [editable]="canAccessStep(WizardStep.REVIEW)">
+                <ng-template matStepLabel>
+                  <div class="step-label">
+                    <mat-icon>{{ getStepIcon(WizardStep.REVIEW) }}</mat-icon>
+                    {{ getStepLabel(WizardStep.REVIEW) }}
+                  </div>
+                </ng-template>
+              </mat-step>
+            }
+          </mat-horizontal-stepper>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Step Content -->
+      <div class="step-content">
+
+        <!-- Step 1: Property Details -->
+        @if (currentStep() === WizardStep.PROPERTY_DETAILS) {
+          <mat-card class="form-card mat-elevation-2">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>home</mat-icon>
+              </div>
+              <mat-card-title class="mat-headline-small">Property Details</mat-card-title>
+              <mat-card-subtitle class="mat-body-medium">
+                Enter the basic information for your property
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <form [formGroup]="propertyForm" (ngSubmit)="onCreateProperty()">
+              <mat-card-content>
+                @if (creating()) {
+                  <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+                }
+
+                <div class="form-fields">
+                  <!-- Title Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Property Title</mat-label>
+                    <input
+                      matInput
+                      formControlName="title"
+                      placeholder="Enter property title"
+                      [disabled]="creating()">
+                    <mat-icon matSuffix>title</mat-icon>
+                    @if (propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched) {
+                      <mat-error>
+                        @if (propertyForm.get('title')?.hasError('required')) {
+                          Title is required
+                        }
+                        @if (propertyForm.get('title')?.hasError('minlength')) {
+                          Title must be at least 3 characters long
+                        }
+                        @if (propertyForm.get('title')?.hasError('maxlength')) {
+                          Title cannot exceed 200 characters
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Description Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Description</mat-label>
+                    <textarea
+                      matInput
+                      formControlName="description"
+                      placeholder="Enter property description"
+                      rows="4"
+                      [disabled]="creating()">
+                    </textarea>
+                    <mat-icon matSuffix>description</mat-icon>
+                    @if (propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched) {
+                      <mat-error>
+                        @if (propertyForm.get('description')?.hasError('required')) {
+                          Description is required
+                        }
+                        @if (propertyForm.get('description')?.hasError('minlength')) {
+                          Description must be at least 10 characters long
+                        }
+                        @if (propertyForm.get('description')?.hasError('maxlength')) {
+                          Description cannot exceed 1000 characters
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Price Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Price</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="price"
+                      placeholder="0"
+                      [disabled]="creating()">
+                    <span matTextPrefix>$&nbsp;</span>
+                    <mat-icon matSuffix>attach_money</mat-icon>
+                    @if (propertyForm.get('price')?.invalid && propertyForm.get('price')?.touched) {
+                      <mat-error>
+                        @if (propertyForm.get('price')?.hasError('required')) {
+                          Price is required
+                        }
+                        @if (propertyForm.get('price')?.hasError('min')) {
+                          Price must be greater than 0
+                        }
+                        @if (propertyForm.get('price')?.hasError('max')) {
+                          Price cannot exceed $50,000,000
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                @if (error()) {
+                  <mat-card appearance="outlined" class="error-card">
+                    <mat-card-content class="error-content">
+                      <mat-icon color="warn">error</mat-icon>
+                      <span class="mat-body-medium">{{ error()?.message || 'An error occurred while creating the property' }}</span>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </mat-card-content>
+
+              <mat-card-actions align="end">
+                <button
+                  mat-button
+                  type="button"
+                  (click)="resetForms()"
+                  [disabled]="creating()">
+                  <mat-icon>clear</mat-icon>
+                  Reset
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="propertyForm.invalid || creating()"
+                  class="submit-button">
+                  <ng-container>
+                  @if (creating()) {
+                    <mat-progress-spinner diameter="18"></mat-progress-spinner>
+                    <span>Creating...</span>
+                  } @else {
+                    <mat-icon>add</mat-icon>
+                    <span>Create Property</span>
+                  }</ng-container>
+                </button>
+              </mat-card-actions>
+            </form>
+          </mat-card>
+        }
+
+        <!-- Step 2: Attributes -->
+        @if (currentStep() === WizardStep.ATTRIBUTES) {
+          <mat-card class="attributes-card mat-elevation-2">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>tune</mat-icon>
+              </div>
+              <mat-card-title class="mat-headline-small">Property Attributes</mat-card-title>
+              <mat-card-subtitle class="mat-body-medium">
+                @if (isEditMode()) {
+                  Manage property attributes and values
+                } @else {
+                  Configure additional property details (optional)
+                }
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (propertyId()) {
+                <app-attribute-manager
+                  [propertyId]="propertyId()!"
+                  [readonly]="false"
+                  [showTitle]="false"
+                  [existingValues]="createdProperty()?.attributeValues || []"
+                  (attributeValueSaved)="onAttributesCompleted()"
+                  (attributeValueDeleted)="onAttributesCompleted()">
+                </app-attribute-manager>
+              } @else {
+                <div class="waiting-content">
+                  <mat-icon class="waiting-icon">hourglass_empty</mat-icon>
+                  <h3 class="mat-headline-small">Waiting for Property Creation</h3>
+                  <p class="mat-body-medium">Please complete the property details step first.</p>
+                </div>
+              }
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              @if (isEditMode()) {
+                <button
+                  mat-button
+                  (click)="goBack()">
+                  <mat-icon>close</mat-icon>
+                  Close
+                </button>
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="onBackToDetails()">
+                  <mat-icon>edit</mat-icon>
+                  Edit Details
+                </button>
+              } @else {
+                <button
+                  mat-button
+                  (click)="onBackToDetails()"
+                  [disabled]="!propertyDetailsCompleted()">
+                  <mat-icon>arrow_back</mat-icon>
+                  Back
+                </button>
+                <button
+                  mat-button
+                  color="accent"
+                  (click)="onSkipAttributes()">
+                  <mat-icon>skip_next</mat-icon>
+                  Skip & Finish
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="onProceedToReview()"
+                  [disabled]="!canProceedToReview()">
+                  <mat-icon>arrow_forward</mat-icon>
+                  Continue
+                </button>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+
+        <!-- Step 3: Review (Create mode only) -->
+        @if (currentStep() === WizardStep.REVIEW && !isEditMode()) {
+          <mat-card class="review-card mat-elevation-2">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>preview</mat-icon>
+              </div>
+              <mat-card-title class="mat-headline-small">Review & Finish</mat-card-title>
+              <mat-card-subtitle class="mat-body-medium">
+                Review your property information before finishing
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (createdProperty()) {
+                <div class="review-content">
+                  <!-- Property Summary -->
+                  <div class="property-summary">
+                    <h3 class="mat-headline-small">{{ createdProperty()?.title }}</h3>
+                    <p class="mat-body-large">${{ createdProperty()?.price | number:'1.2-2' }}</p>
+                    <p class="mat-body-medium">{{ createdProperty()?.description }}</p>
+                  </div>
+
+                  <mat-divider></mat-divider>
+
+                  <!-- Attributes Summary -->
+                  <div class="attributes-summary">
+                    <h4 class="mat-headline-small">Configured Attributes</h4>
+                    @if (createdProperty()?.attributeValues && createdProperty()?.attributeValues!.length > 0) {
+                      <div class="attribute-list">
+                        @for (value of createdProperty()?.attributeValues; track value.id) {
+                          <div class="attribute-item">
+                            <span class="attribute-name">{{ value.attributeName }}:</span>
+                            <span class="attribute-value">{{ value.value }}</span>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <p class="mat-body-medium no-attributes">No attributes configured</p>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="error-content">
+                  <mat-icon color="warn">error</mat-icon>
+                  <p class="mat-body-medium">Unable to load property information for review.</p>
+                </div>
+              }
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button
+                mat-button
+                (click)="onBackToAttributes()">
+                <mat-icon>arrow_back</mat-icon>
+                Back to Attributes
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                (click)="onFinishWizard()">
+                <mat-icon>check_circle</mat-icon>
+                Finish
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+
+        <!-- Edit Mode: Property Details Form -->
+        @if (isEditMode() && currentStep() === WizardStep.PROPERTY_DETAILS) {
+          <mat-card class="edit-form-card mat-elevation-2">
+            <mat-card-header>
+              <div mat-card-avatar>
+                <mat-icon>edit</mat-icon>
+              </div>
+              <mat-card-title class="mat-headline-small">Edit Property Details</mat-card-title>
+              <mat-card-subtitle class="mat-body-medium">
+                Update the basic information for this property
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <form [formGroup]="editForm" (ngSubmit)="onUpdateProperty()">
+              <mat-card-content>
+                @if (creating()) {
+                  <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+                }
+
+                <div class="form-fields">
+                  <!-- Title Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Property Title</mat-label>
+                    <input
+                      matInput
+                      formControlName="title"
+                      placeholder="Enter property title"
+                      [disabled]="creating()">
+                    <mat-icon matSuffix>title</mat-icon>
+                    @if (editForm.get('title')?.invalid && editForm.get('title')?.touched) {
+                      <mat-error>
+                        @if (editForm.get('title')?.hasError('required')) {
+                          Title is required
+                        }
+                        @if (editForm.get('title')?.hasError('minlength')) {
+                          Title must be at least 3 characters long
+                        }
+                        @if (editForm.get('title')?.hasError('maxlength')) {
+                          Title cannot exceed 200 characters
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Description Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Description</mat-label>
+                    <textarea
+                      matInput
+                      formControlName="description"
+                      placeholder="Enter property description"
+                      rows="4"
+                      [disabled]="creating()">
+                    </textarea>
+                    <mat-icon matSuffix>description</mat-icon>
+                    @if (editForm.get('description')?.invalid && editForm.get('description')?.touched) {
+                      <mat-error>
+                        @if (editForm.get('description')?.hasError('required')) {
+                          Description is required
+                        }
+                        @if (editForm.get('description')?.hasError('minlength')) {
+                          Description must be at least 10 characters long
+                        }
+                        @if (editForm.get('description')?.hasError('maxlength')) {
+                          Description cannot exceed 1000 characters
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Price Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Price</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="price"
+                      placeholder="0"
+                      [disabled]="creating()">
+                    <span matTextPrefix>$&nbsp;</span>
+                    <mat-icon matSuffix>attach_money</mat-icon>
+                    @if (editForm.get('price')?.invalid && editForm.get('price')?.touched) {
+                      <mat-error>
+                        @if (editForm.get('price')?.hasError('required')) {
+                          Price is required
+                        }
+                        @if (editForm.get('price')?.hasError('min')) {
+                          Price must be greater than 0
+                        }
+                        @if (editForm.get('price')?.hasError('max')) {
+                          Price cannot exceed $50,000,000
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Status Field (Edit only) -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Status</mat-label>
+                    <mat-select formControlName="status" [disabled]="creating()">
+                      <mat-option value="ACTIVE">Active</mat-option>
+                      <mat-option value="INACTIVE">Inactive</mat-option>
+                      <mat-option value="SOLD">Sold</mat-option>
+                      <mat-option value="PENDING">Pending</mat-option>
+                    </mat-select>
+                    <mat-icon matSuffix>flag</mat-icon>
+                  </mat-form-field>
+                </div>
+
+                @if (error()) {
+                  <mat-card appearance="outlined" class="error-card">
+                    <mat-card-content class="error-content">
+                      <mat-icon color="warn">error</mat-icon>
+                      <span class="mat-body-medium">{{ error()?.message || 'An error occurred while updating the property' }}</span>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              </mat-card-content>
+
+              <mat-card-actions align="end">
+                <button
+                  mat-button
+                  type="button"
+                  (click)="onProceedToAttributes()"
+                  [disabled]="creating()">
+                  <mat-icon>tune</mat-icon>
+                  Manage Attributes
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="editForm.invalid || creating()"
+                  class="submit-button">
+                  <ng-container>
+                  @if (creating()) {
+                    <mat-progress-spinner diameter="18"></mat-progress-spinner>
+                    <span>Updating...</span>
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                    <span>Update Property</span>
+                  }</ng-container>
+                </button>
+              </mat-card-actions>
+            </form>
+          </mat-card>
+        }
+      </div>
+    </div>
+  </div>
+</div>
