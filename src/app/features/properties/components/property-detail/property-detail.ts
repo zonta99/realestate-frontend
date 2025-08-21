@@ -12,7 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { PropertyService, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { AttributeDisplayComponent } from '../../../attributes/components/attribute-display/attribute-display';
-import { PropertyAttribute, PropertyValue, PropertyStatus } from '../../models/property.interface';
+import { PropertyAttribute, PropertyStatus } from '../../models/property.interface';
 
 @Component({
   selector: 'app-property-detail',

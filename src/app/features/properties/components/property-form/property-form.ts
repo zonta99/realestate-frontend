@@ -15,12 +15,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { PropertyService, PropertyWithAttributes, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { ChangeTrackingService } from '../../services/change-tracking.service';
 import { AttributeFormFieldComponent } from '../../../attributes/components/attribute-form-field/attribute-form-field';
-import { PropertyAttribute, PropertyCategory, PropertyValue, PropertyStatus } from '../../models/property.interface';
+import { PropertyAttribute, PropertyCategory, PropertyStatus } from '../../models/property.interface';
 import { MatDialog } from '@angular/material/dialog';
 import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../../../../shared/components/unsaved-changes-dialog/unsaved-changes-dialog';
 
@@ -252,7 +252,7 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
 
       operation.pipe(takeUntil(this.destroy$)).subscribe({
         next: (property) => {
-          // Accept changes after successful save
+          // Accept changes after a successful save
           this.changeTrackingService.acceptChanges();
 
           const action = this.isEditMode() ? 'updated' : 'created';

@@ -10,9 +10,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy,
   signal,
-  computed,
-  inject,
-  effect
+  computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
@@ -29,7 +27,6 @@ import {
   PropertyAttribute,
   PropertyAttributeDataType
 } from '../../../properties/models/property.interface';
-import { AttributeService } from '../../services/attribute.service';
 
 @Component({
   selector: 'app-attribute-form-field',
@@ -68,13 +65,6 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy, OnChanges
   // Multi-select values handling
   multiSelectValues = signal<string[]>([]);
   availableOptions = computed(() => this.attribute?.options || []);
-
-  // Value initialization effect
-  private valueEffect = effect(() => {
-    if (this.value !== null && this.value !== undefined) {
-      this.setFormValue(this.value);
-    }
-  });
 
   ngOnInit() {
     this.initializeFormControl();
