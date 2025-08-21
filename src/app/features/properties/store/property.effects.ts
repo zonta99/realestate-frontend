@@ -28,20 +28,22 @@ export class PropertyEffects {
     )
   );
 
-  // Load Property by ID Effect
+  // Load Property by ID Effect - Updated to use full data
   loadProperty$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PropertyActions.loadProperty),
       switchMap(({ id }) =>
-        this.propertyService.getPropertyById(id).pipe(
-          map(property => PropertyActions.loadPropertySuccess({ property })),
+        this.propertyService.getPropertyFullData(id).pipe(
+          map(propertyFullData => PropertyActions.loadPropertySuccess({
+            property: propertyFullData.property
+          })),
           catchError(error => of(PropertyActions.loadPropertyFailure({ error })))
         )
       )
     )
   );
 
-  // Create Property Effect
+  // Create Property Effect - Keep using basic create for backwards compatibility
   createProperty$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PropertyActions.createProperty),
@@ -54,7 +56,7 @@ export class PropertyEffects {
     )
   );
 
-  // Update Property Effect
+  // Update Property Effect - Keep using basic update for backwards compatibility
   updateProperty$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PropertyActions.updateProperty),
@@ -106,12 +108,12 @@ export class PropertyEffects {
     )
   );
 
-  // Set Property Value Effect
+  // Set Property Value Effect - Updated to match new service signature
   setPropertyValue$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PropertyActions.setPropertyValue),
       switchMap(({ propertyId, valueRequest }) =>
-        this.propertyService.setPropertyValue(propertyId, valueRequest).pipe(
+        this.propertyService.setPropertyValue(propertyId, valueRequest.attributeId, valueRequest.value).pipe(
           map(value => PropertyActions.setPropertyValueSuccess({ value })),
           catchError(error => of(PropertyActions.setPropertyValueFailure({ error })))
         )
@@ -184,84 +186,84 @@ export class PropertyEffects {
 
   // Success Notifications
   createPropertySuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.createPropertySuccess),
-      tap(({ property }) => {
-        this.snackBar.open(`Property "${property.title}" created successfully!`, 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-        // Navigate to property details
-        this.router.navigate(['/properties', property.id]);
-      })
-    ),
+      this.actions$.pipe(
+        ofType(PropertyActions.createPropertySuccess),
+        tap(({ property }) => {
+          this.snackBar.open(`Property "${property.title}" created successfully!`, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+          // Navigate to property details
+          this.router.navigate(['/properties', property.id]);
+        })
+      ),
     { dispatch: false }
   );
 
   updatePropertySuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.updatePropertySuccess),
-      tap(({ property }) => {
-        this.snackBar.open(`Property "${property.title}" updated successfully!`, 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-      })
-    ),
+      this.actions$.pipe(
+        ofType(PropertyActions.updatePropertySuccess),
+        tap(({ property }) => {
+          this.snackBar.open(`Property "${property.title}" updated successfully!`, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        })
+      ),
     { dispatch: false }
   );
 
   deletePropertySuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.deletePropertySuccess),
-      tap(({ message }) => {
-        this.snackBar.open(message, 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-      })
-    ),
+      this.actions$.pipe(
+        ofType(PropertyActions.deletePropertySuccess),
+        tap(({ message }) => {
+          this.snackBar.open(message, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        })
+      ),
     { dispatch: false }
   );
 
   sharePropertySuccess$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.sharePropertySuccess),
-      tap(({ message }) => {
-        this.snackBar.open(message, 'Close', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-      })
-    ),
+      this.actions$.pipe(
+        ofType(PropertyActions.sharePropertySuccess),
+        tap(({ message }) => {
+          this.snackBar.open(message, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        })
+      ),
     { dispatch: false }
   );
 
   // Error Notifications
   propertyError$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(
-        PropertyActions.loadPropertiesFailure,
-        PropertyActions.loadPropertyFailure,
-        PropertyActions.createPropertyFailure,
-        PropertyActions.updatePropertyFailure,
-        PropertyActions.deletePropertyFailure,
-        PropertyActions.searchPropertiesFailure,
-        PropertyActions.loadPropertyValuesFailure,
-        PropertyActions.setPropertyValueFailure,
-        PropertyActions.deletePropertyValueFailure,
-        PropertyActions.loadPropertySharingFailure,
-        PropertyActions.sharePropertyFailure,
-        PropertyActions.unsharePropertyFailure
+      this.actions$.pipe(
+        ofType(
+          PropertyActions.loadPropertiesFailure,
+          PropertyActions.loadPropertyFailure,
+          PropertyActions.createPropertyFailure,
+          PropertyActions.updatePropertyFailure,
+          PropertyActions.deletePropertyFailure,
+          PropertyActions.searchPropertiesFailure,
+          PropertyActions.loadPropertyValuesFailure,
+          PropertyActions.setPropertyValueFailure,
+          PropertyActions.deletePropertyValueFailure,
+          PropertyActions.loadPropertySharingFailure,
+          PropertyActions.sharePropertyFailure,
+          PropertyActions.unsharePropertyFailure
+        ),
+        tap(({ error }) => {
+          const errorMessage = error?.error?.message || error?.message || 'An error occurred';
+          this.snackBar.open(`Error: ${errorMessage}`, 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        })
       ),
-      tap(({ error }) => {
-        const errorMessage = error?.error?.message || error?.message || 'An error occurred';
-        this.snackBar.open(`Error: ${errorMessage}`, 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-      })
-    ),
     { dispatch: false }
   );
 

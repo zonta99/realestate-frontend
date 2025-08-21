@@ -1,9 +1,9 @@
 // src/app/features/properties/components/property-form/property-form.ts
 import { Component, ChangeDetectionStrategy, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import {CommonModule, KeyValue} from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,12 +15,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Subject, takeUntil } from 'rxjs';
-import { PropertyActions } from '../../store/property.actions';
-import { selectCreating, selectError } from '../../store/property.selectors';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { PropertyService, PropertyWithAttributes, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
+import { ChangeTrackingService } from '../../services/change-tracking.service';
 import { AttributeFormFieldComponent } from '../../../attributes/components/attribute-form-field/attribute-form-field';
-import { PropertyAttribute, PropertyCategory } from '../../models/property.interface';
+import { PropertyAttribute, PropertyCategory, PropertyValue, PropertyStatus } from '../../models/property.interface';
+import { MatDialog } from '@angular/material/dialog';
+import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../../../../shared/components/unsaved-changes-dialog/unsaved-changes-dialog';
 
 @Component({
   selector: 'app-property-form',
@@ -47,27 +49,41 @@ import { PropertyAttribute, PropertyCategory } from '../../models/property.inter
 })
 export class PropertyFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
-  private store = inject(Store);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private propertyService = inject(PropertyService);
   private attributeService = inject(AttributeService);
+  changeTrackingService = inject(ChangeTrackingService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
   private destroy$ = new Subject<void>();
 
   // Signals for reactive state
-  creating = this.store.selectSignal(selectCreating);
-  error = this.store.selectSignal(selectError);
+  loading = signal(false);
+  saving = signal(false);
+  error = signal<string | null>(null);
 
-  // Attribute-related signals
+  // Mode detection
+  isEditMode = signal(false);
+  propertyId = signal<number | null>(null);
+
+  // Data signals
   attributes = signal<PropertyAttribute[]>([]);
-  attributesLoading = signal(true);
   attributeValues = signal<Map<number, any>>(new Map());
+  propertyData = signal<PropertyFullData | null>(null);
 
   // Computed categorized attributes for template
   categorizedAttributes = computed(() => {
     const attrs = this.attributes();
     if (!attrs.length) return new Map();
-
     return this.attributeService.groupAttributesByCategory(attrs);
   });
+
+  // Computed property for change tracking
+  hasUnsavedChanges = computed(() => this.changeTrackingService.hasChanges());
+
+  // Page title
+  pageTitle = computed(() => this.isEditMode() ? 'Edit Property' : 'Add New Property');
 
   // Reactive form
   propertyForm = this.fb.group({
@@ -85,11 +101,13 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
       Validators.required,
       Validators.min(1),
       Validators.max(50000000)
-    ]]
+    ]],
+    status: [PropertyStatus.ACTIVE, [Validators.required]]
   });
 
   ngOnInit(): void {
-    this.loadAttributes();
+    this.detectMode();
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -97,55 +115,208 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadAttributes(): void {
-    this.attributesLoading.set(true);
+  private detectMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode.set(true);
+      this.propertyId.set(parseInt(id, 10));
+    }
+  }
+
+  private loadData(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Load attributes first
     this.attributeService.getAllAttributes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (attributes) => {
           this.attributes.set(attributes);
-          this.attributesLoading.set(false);
+
+          // If edit mode, load property data
+          if (this.isEditMode() && this.propertyId()) {
+            this.loadPropertyData(this.propertyId()!);
+          } else {
+            this.loading.set(false);
+          }
         },
         error: (error) => {
           console.error('Failed to load attributes:', error);
-          this.attributesLoading.set(false);
+          this.error.set('Failed to load form data. Please try again.');
+          this.loading.set(false);
         }
       });
   }
 
+  private loadPropertyData(propertyId: number): void {
+    this.propertyService.getPropertyFullData(propertyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (propertyData: PropertyFullData) => {
+          this.propertyData.set(propertyData);
+          this.populateForm(propertyData);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load property data:', error);
+          this.error.set('Failed to load property data. Please try again.');
+          this.loading.set(false);
+        }
+      });
+  }
+
+  private populateForm(data: PropertyFullData): void {
+    // Set basic property form values
+    this.propertyForm.patchValue({
+      title: data.property.title,
+      description: data.property.description,
+      price: data.property.price,
+      status: data.property.status
+    });
+
+    // Set attribute values
+    const valueMap = new Map<number, any>();
+    data.attributeValues.forEach(value => {
+      const attr = this.attributes().find(a => a.id === value.attributeId);
+      if (attr) {
+        let parsedValue
+
+        // Parse value based on attribute type
+        switch (attr.dataType) {
+          case 'BOOLEAN':
+            parsedValue = value.value === 'true';
+            break;
+          case 'NUMBER':
+            parsedValue = parseFloat(value.value);
+            break;
+          case 'MULTI_SELECT':
+            try {
+              parsedValue = JSON.parse(value.value);
+            } catch {
+              parsedValue = [];
+            }
+            break;
+          default:
+            parsedValue = value.value;
+        }
+
+        valueMap.set(value.attributeId, parsedValue);
+      }
+    });
+
+    // Initialize change tracking with original values
+    this.changeTrackingService.setOriginalValues(valueMap);
+    this.attributeValues.set(valueMap);
+  }
+
   onAttributeValueChange(event: { attributeId: number; value: any }): void {
-    const currentValues = this.attributeValues();
-    currentValues.set(event.attributeId, event.value);
-    this.attributeValues.set(new Map(currentValues));
+    // Update change tracking service
+    this.changeTrackingService.updateCurrentValue(event.attributeId, event.value);
+
+    // Update current values for display
+    const currentValues = new Map(this.attributeValues());
+
+    if (event.value === null || event.value === undefined || event.value === '') {
+      currentValues.delete(event.attributeId);
+    } else {
+      currentValues.set(event.attributeId, event.value);
+    }
+
+    this.attributeValues.set(currentValues);
   }
 
   onSubmit(): void {
-    if (this.propertyForm.valid && !this.creating()) {
+    if (this.propertyForm.valid && !this.saving()) {
+      this.saving.set(true);
+      this.error.set(null);
+
       const formValue = this.propertyForm.getRawValue();
 
-      // First create the property
-      this.store.dispatch(PropertyActions.createProperty({
-        property: {
-          title: formValue.title!,
-          description: formValue.description!,
-          price: formValue.price!
-        }
-      }));
+      // Use only changed attribute values for update
+      const attributeValuesObj = this.isEditMode()
+        ? this.changeTrackingService.changedValues()
+        : Object.fromEntries(this.attributeValues());
 
-      // Note: In a real implementation, we would need to wait for property creation
-      // success and then set attribute values. This would require updating the
-      // property effects and actions to handle attribute values as well.
+      const propertyData: PropertyWithAttributes = {
+        title: formValue.title!,
+        description: formValue.description!,
+        price: formValue.price!,
+        ...(this.isEditMode() && { status: formValue.status! }),
+        attributeValues: attributeValuesObj
+      };
+
+      const operation = this.isEditMode()
+        ? this.propertyService.updatePropertyWithAttributes(this.propertyId()!, propertyData)
+        : this.propertyService.createPropertyWithAttributes(propertyData);
+
+      operation.pipe(takeUntil(this.destroy$)).subscribe({
+        next: (property) => {
+          // Accept changes after successful save
+          this.changeTrackingService.acceptChanges();
+
+          const action = this.isEditMode() ? 'updated' : 'created';
+          this.snackBar.open(`Property "${property.title}" ${action} successfully!`, 'Close', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+
+          // Navigate to property details or list
+          if (this.isEditMode()) {
+            this.router.navigate(['/properties', this.propertyId()]);
+          } else {
+            this.router.navigate(['/properties', property.id]);
+          }
+        },
+        error: (error) => {
+          console.error('Failed to save property:', error);
+          const action = this.isEditMode() ? 'update' : 'create';
+          this.error.set(`Failed to ${action} property. Please try again.`);
+          this.saving.set(false);
+
+          this.snackBar.open(`Error: Failed to ${action} property`, 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
     }
   }
 
   resetForm(): void {
     this.propertyForm.reset();
     this.attributeValues.set(new Map());
-    this.store.dispatch(PropertyActions.clearError());
+    this.error.set(null);
   }
 
   goBack(): void {
-    this.router.navigate(['/properties']);
+    // Check for unsaved changes before navigation
+    if (this.hasUnsavedChanges()) {
+      const dialogRef = this.dialog.open(UnsavedChangesDialogComponent);
+
+      dialogRef.afterClosed().subscribe((result: UnsavedChangesDialogResult | undefined) => {
+        if (result?.action === 'save') {
+          // Save changes first, then navigate
+          this.onSubmit();
+        } else if (result?.action === 'discard') {
+          // Discard changes and navigate
+          this.changeTrackingService.resetToOriginal();
+          this.navigateBack();
+        }
+        // If cancel or no result, do nothing (stay on form)
+      });
+    } else {
+      // No changes, navigate directly
+      this.navigateBack();
+    }
+  }
+
+  private navigateBack(): void {
+    if (this.isEditMode() && this.propertyId()) {
+      this.router.navigate(['/properties', this.propertyId()]);
+    } else {
+      this.router.navigate(['/properties']);
+    }
   }
 
   // Utility methods for template
@@ -173,6 +344,10 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
     return nameMap[category] || 'Other';
   }
 
+  getAttributeValue(attributeId: number): any {
+    return this.attributeValues().get(attributeId);
+  }
+
   trackByCategory(index: number, entry: KeyValue<any, any>): PropertyCategory {
     return entry.key;
   }
@@ -181,6 +356,3 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
     return attribute.id;
   }
 }
-
-// Export alias for consistency
-export { PropertyFormComponent as PropertyForm };

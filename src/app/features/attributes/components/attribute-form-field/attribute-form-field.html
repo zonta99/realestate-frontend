@@ -1,12 +1,20 @@
 <!-- src/app/features/attributes/components/attribute-form-field/attribute-form-field.html -->
-<div class="attribute-form-field">
+<div class="attribute-form-field" [class.dirty]="isDirty">
+  @if (isDirty) {
+    <div class="dirty-indicator">
+      <mat-icon class="dirty-icon" color="accent">edit</mat-icon>
+      <span class="dirty-text">Modified</span>
+    </div>
+  }
   @if (attribute.dataType === PropertyAttributeDataType.TEXT) {
     <!-- TEXT input -->
     <mat-form-field class="full-width">
       <mat-label>{{ attribute.name }}</mat-label>
       <input matInput
              [formControl]="formControl"
-             [placeholder]="attribute.name">
+             [placeholder]="attribute.name"
+              [value]="attribute.value"
+      >
       @if (attribute.isRequired) {
         <mat-icon matSuffix color="accent">star</mat-icon>
       }
@@ -30,14 +38,25 @@
       }
     </mat-form-field>
   } @else if (attribute.dataType === PropertyAttributeDataType.BOOLEAN) {
-    <!-- BOOLEAN checkbox -->
+    <!-- BOOLEAN button -->
     <div class="boolean-field">
-      <mat-checkbox [formControl]="formControl">
+      <label class="field-label">
         {{ attribute.name }}
         @if (attribute.isRequired) {
           <mat-icon color="accent" class="required-icon">star</mat-icon>
         }
-      </mat-checkbox>
+      </label>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="cycleBooleanValue()"
+        [disabled]="disabled"
+        class="boolean-toggle-button">
+        <mat-icon>{{ getBooleanIcon() }}</mat-icon>
+        {{ getBooleanLabel() }}
+      </button>
+
       @if (formControl.invalid && formControl.touched) {
         <div class="mat-error">{{ getErrorMessage() }}</div>
       }

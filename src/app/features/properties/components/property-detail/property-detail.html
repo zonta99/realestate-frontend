@@ -16,7 +16,7 @@
           <mat-icon color="warn">error</mat-icon>
           <div>
             <h3>Error Loading Property</h3>
-            <p>{{ error()?.message || 'Unable to load property details' }}</p>
+            <p>{{ error() }}</p>
           </div>
         </div>
         <div class="error-actions">
@@ -30,7 +30,7 @@
   }
 
   <!-- Property Content -->
-  @if (property() && !loading()) {
+  @if (property() && !loading() && !error()) {
     <!-- Header -->
     <header class="property-header">
       <div class="header-content">
@@ -111,22 +111,28 @@
 
       <!-- Property Attributes Section -->
       <div class="attributes-section">
-        @if (attributesLoading()) {
-          <mat-card class="attributes-loading-card">
-            <mat-card-content>
-              <div class="loading-content">
-                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-                <p class="mat-body-medium">Loading property attributes...</p>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        } @else {
+        @if (attributes().length > 0 && attributeValues().length > 0) {
           <app-attribute-display
             [attributes]="attributes()"
             [values]="attributeValues()"
             [showEmptyValues]="false"
             [groupByCategory]="true">
           </app-attribute-display>
+        } @else if (attributes().length > 0) {
+          <!-- Show message when no attribute values exist -->
+          <mat-card class="no-attributes-card">
+            <mat-card-content>
+              <div class="no-attributes-content">
+                <mat-icon>info</mat-icon>
+                <h3>No Additional Information</h3>
+                <p>This property doesn't have any additional attribute values set.</p>
+                <button mat-raised-button color="primary" (click)="onEdit()">
+                  <mat-icon>add</mat-icon>
+                  Add Property Details
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
         }
       </div>
     </div>

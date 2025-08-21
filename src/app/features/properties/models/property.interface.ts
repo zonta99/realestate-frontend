@@ -131,6 +131,7 @@ export interface PropertyAttribute {
   createdDate: string;
   updatedDate: string;
   options: PropertyAttributeOption[] | null;
+  value?: any;
 }
 
 export interface PropertyAttributeOption {

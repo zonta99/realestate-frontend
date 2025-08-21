@@ -6,10 +6,13 @@ import {
   EventEmitter,
   OnInit,
   OnDestroy,
+  OnChanges,
+  SimpleChanges,
   ChangeDetectionStrategy,
   signal,
   computed,
-  inject
+  inject,
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
@@ -20,11 +23,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { Subject, takeUntil } from 'rxjs';
 import {
   PropertyAttribute,
-  PropertyAttributeDataType,
-  PropertyValue
+  PropertyAttributeDataType
 } from '../../../properties/models/property.interface';
 import { AttributeService } from '../../services/attribute.service';
 
@@ -40,20 +43,21 @@ import { AttributeService } from '../../services/attribute.service';
     MatCheckboxModule,
     MatChipsModule,
     MatDatepickerModule,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule
   ],
   templateUrl: './attribute-form-field.html',
   styleUrls: ['./attribute-form-field.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AttributeFormFieldComponent implements OnInit, OnDestroy {
-  private attributeService = inject(AttributeService);
+export class AttributeFormFieldComponent implements OnInit, OnDestroy, OnChanges {
   private destroy$ = new Subject<void>();
 
   @Input({ required: true }) attribute!: PropertyAttribute;
-  @Input() value?: PropertyValue;
+  @Input() value: any = null;
   @Input() disabled = false;
-  @Output() valueChange = new EventEmitter<{ attributeId: number; value: any; isValid: boolean }>();
+  @Input() isDirty: boolean = false;
+  @Output() valueChange = new EventEmitter<{ attributeId: number; value: any }>();
 
   // Expose enum for template
   readonly PropertyAttributeDataType = PropertyAttributeDataType;
@@ -61,13 +65,34 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
   // Form control for the field
   formControl = new FormControl();
 
-  // Multi-select chips handling
+  // Multi-select values handling
   multiSelectValues = signal<string[]>([]);
   availableOptions = computed(() => this.attribute?.options || []);
+
+  // Value initialization effect
+  private valueEffect = effect(() => {
+    if (this.value !== null && this.value !== undefined) {
+      this.setFormValue(this.value);
+    }
+  });
 
   ngOnInit() {
     this.initializeFormControl();
     this.setupValueChanges();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['value'] && !changes['value'].firstChange) {
+      this.setFormValue(this.value);
+    }
+
+    if (changes['disabled']) {
+      if (this.disabled) {
+        this.formControl.disable();
+      } else {
+        this.formControl.enable();
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -89,33 +114,71 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
 
     this.formControl.setValidators(validators);
 
-    // Set initial value
-    if (this.value) {
-      this.setInitialValue();
+    // Set initial value if provided
+    if (this.value !== null && this.value !== undefined) {
+      this.setFormValue(this.value);
     }
 
-    // Disable if needed
+    // Set disabled state
     if (this.disabled) {
       this.formControl.disable();
     }
   }
 
-  private setInitialValue() {
-    if (!this.value) return;
+  private setFormValue(value: any) {
+    if (value === null || value === undefined) {
+      this.formControl.setValue(null);
+      if (this.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT) {
+        this.multiSelectValues.set([]);
+      }
+      return;
+    }
 
     switch (this.attribute.dataType) {
       case PropertyAttributeDataType.MULTI_SELECT:
-        const multiValues = this.attributeService.parseMultiSelectValue(this.value.value);
+        let multiValues: string[] = [];
+        if (Array.isArray(value)) {
+          multiValues = value;
+        } else if (typeof value === 'string') {
+          try {
+            multiValues = JSON.parse(value);
+          } catch {
+            multiValues = value ? [value] : [];
+          }
+        }
         this.multiSelectValues.set(multiValues);
+        this.formControl.setValue(multiValues);
         break;
+
       case PropertyAttributeDataType.BOOLEAN:
-        this.formControl.setValue(this.value.value === 'true' || this.value.value);
+        let boolValue: boolean | null;
+        if (value === '') {
+          boolValue = null;
+        } else if (value === true || value === 'true') {
+          boolValue = true;
+        } else if (value === false || value === 'false') {
+          boolValue = false;
+        } else {
+          boolValue = null; // Default for unexpected values
+        }
+        this.formControl.setValue(boolValue);
         break;
+
       case PropertyAttributeDataType.NUMBER:
-        this.formControl.setValue(Number(this.value.value));
+        const numValue = typeof value === 'number' ? value : parseFloat(value);
+        this.formControl.setValue(isNaN(numValue) ? null : numValue);
         break;
+
+      case PropertyAttributeDataType.DATE:
+        if (value instanceof Date) {
+          this.formControl.setValue(value);
+        } else if (typeof value === 'string') {
+          this.formControl.setValue(new Date(value));
+        }
+        break;
+
       default:
-        this.formControl.setValue(this.value.value);
+        this.formControl.setValue(value);
         break;
     }
   }
@@ -124,41 +187,22 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
     this.formControl.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => {
+        // Always emit the value change, even if invalid, so parent can track state
         let processedValue = value;
 
-        // Process value based on data type
+        // Special handling for multi-select
         if (this.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT) {
-          processedValue = this.attributeService.stringifyMultiSelectValue(this.multiSelectValues());
+          processedValue = this.multiSelectValues();
         }
 
         this.valueChange.emit({
           attributeId: this.attribute.id,
-          value: processedValue,
-          isValid: this.formControl.valid
+          value: processedValue
         });
       });
   }
 
   // Multi-select chip handling
-  addChip(event: any) {
-    if (event.value) {
-      const currentValues = this.multiSelectValues();
-      if (!currentValues.includes(event.value)) {
-        const newValues = [...currentValues, event.value];
-        this.multiSelectValues.set(newValues);
-        this.emitMultiSelectChange();
-      }
-      event.chipInput.clear();
-    }
-  }
-
-  removeChip(option: string) {
-    const currentValues = this.multiSelectValues();
-    const newValues = currentValues.filter(v => v !== option);
-    this.multiSelectValues.set(newValues);
-    this.emitMultiSelectChange();
-  }
-
   toggleChip(option: string) {
     const currentValues = this.multiSelectValues();
     let newValues: string[];
@@ -170,16 +214,14 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
     }
 
     this.multiSelectValues.set(newValues);
-    this.emitMultiSelectChange();
+    this.formControl.setValue(newValues);
   }
 
-  private emitMultiSelectChange() {
-    const stringValue = this.attributeService.stringifyMultiSelectValue(this.multiSelectValues());
-    this.valueChange.emit({
-      attributeId: this.attribute.id,
-      value: stringValue,
-      isValid: this.formControl.valid
-    });
+  removeChip(option: string) {
+    const currentValues = this.multiSelectValues();
+    const newValues = currentValues.filter(v => v !== option);
+    this.multiSelectValues.set(newValues);
+    this.formControl.setValue(newValues);
   }
 
   // Utility methods for template
@@ -195,6 +237,36 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy {
 
   isChipSelected(option: string): boolean {
     return this.multiSelectValues().includes(option);
+  }
+
+  // Boolean value handling - cycle through states
+  cycleBooleanValue() {
+    const currentValue = this.formControl.value;
+    let nextValue: boolean | null;
+
+    if (currentValue === null || currentValue === undefined) {
+      nextValue = true;
+    } else if (currentValue === true) {
+      nextValue = false;
+    } else {
+      nextValue = null;
+    }
+
+    this.formControl.setValue(nextValue);
+  }
+
+  getBooleanIcon(): string {
+    const value = this.formControl.value;
+    if (value === true) return 'check_circle';
+    if (value === false) return 'cancel';
+    return 'help_outline';
+  }
+
+  getBooleanLabel(): string {
+    const value = this.formControl.value;
+    if (value === true) return 'True';
+    if (value === false) return 'False';
+    return 'Undefined';
   }
 
   // TrackBy functions for better performance

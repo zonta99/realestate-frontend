@@ -2,19 +2,16 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { PropertyActions } from '../../store/property.actions';
-import { selectSelectedProperty, selectLoading, selectError } from '../../store/property.selectors';
+import { Subject, takeUntil } from 'rxjs';
+import { PropertyService, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { AttributeDisplayComponent } from '../../../attributes/components/attribute-display/attribute-display';
-import { AttributeManagerComponent } from '../../../attributes/components/attribute-manager/attribute-manager';
 import { PropertyAttribute, PropertyValue, PropertyStatus } from '../../models/property.interface';
 
 @Component({
@@ -37,25 +34,24 @@ import { PropertyAttribute, PropertyValue, PropertyStatus } from '../../models/p
 export class PropertyDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private store = inject(Store);
+  private propertyService = inject(PropertyService);
   private attributeService = inject(AttributeService);
   private destroy$ = new Subject<void>();
 
-  // Store selectors
-  property = this.store.selectSignal(selectSelectedProperty);
-  loading = this.store.selectSignal(selectLoading);
-  error = this.store.selectSignal(selectError);
-
-  // Local state
+  // Signals for reactive state
+  loading = signal(true);
+  error = signal<string | null>(null);
+  propertyData = signal<PropertyFullData | null>(null);
   attributes = signal<PropertyAttribute[]>([]);
-  attributeValues = signal<PropertyValue[]>([]);
-  attributesLoading = signal(true);
 
   // Computed properties
   propertyId = computed(() => {
     const id = this.route.snapshot.paramMap.get('id');
     return id ? parseInt(id, 10) : null;
   });
+
+  property = computed(() => this.propertyData()?.property || null);
+  attributeValues = computed(() => this.propertyData()?.attributeValues || []);
 
   statusColor = computed(() => {
     const prop = this.property();
@@ -85,26 +81,36 @@ export class PropertyDetailComponent implements OnInit, OnDestroy {
   }
 
   private loadPropertyData(propertyId: number): void {
-    // Load property details
-    this.store.dispatch(PropertyActions.loadProperty({ id: propertyId }));
+    this.loading.set(true);
+    this.error.set(null);
 
-    // Load attributes and property attribute values
-    this.attributesLoading.set(true);
+    // Load property data and attributes in parallel
+    const propertyRequest = this.propertyService.getPropertyFullData(propertyId);
+    const attributesRequest = this.attributeService.getAllAttributes();
 
-    forkJoin({
-      attributes: this.attributeService.getAllAttributes(),
-      attributeValues: this.attributeService.getPropertyAttributeValues(propertyId)
-    }).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: ({ attributes, attributeValues }) => {
-        this.attributes.set(attributes);
-        this.attributeValues.set(attributeValues);
-        this.attributesLoading.set(false);
+    // Using Promise.all equivalent with observables
+    propertyRequest.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => {
+        this.propertyData.set(data);
+
+        // Load attributes
+        attributesRequest.pipe(takeUntil(this.destroy$)).subscribe({
+          next: (attributes) => {
+            this.attributes.set(attributes);
+            this.loading.set(false);
+          },
+          error: (error) => {
+            console.error('Failed to load attributes:', error);
+            // Continue without attributes
+            this.attributes.set([]);
+            this.loading.set(false);
+          }
+        });
       },
       error: (error) => {
-        console.error('Failed to load attribute data:', error);
-        this.attributesLoading.set(false);
+        console.error('Failed to load property data:', error);
+        this.error.set('Failed to load property details. Please try again.');
+        this.loading.set(false);
       }
     });
   }
@@ -112,13 +118,14 @@ export class PropertyDetailComponent implements OnInit, OnDestroy {
   onEdit(): void {
     const id = this.propertyId();
     if (id) {
-      this.router.navigate(['/properties', 'edit', id]);
+      this.router.navigate(['/properties', id, 'edit']);
     }
   }
 
   onShare(): void {
     // Implementation for sharing functionality
     console.log('Share property');
+    // You can implement sharing logic here
   }
 
   onBack(): void {
