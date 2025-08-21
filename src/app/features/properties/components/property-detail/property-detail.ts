@@ -1,154 +1,143 @@
 // src/app/features/properties/components/property-detail/property-detail.ts
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatChipsModule } from '@angular/material/chips';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { PropertyActions } from '../../store/property.actions';
+import { selectSelectedProperty, selectLoading, selectError } from '../../store/property.selectors';
+import { AttributeService } from '../../../attributes/services/attribute.service';
+import { AttributeDisplayComponent } from '../../../attributes/components/attribute-display/attribute-display';
+import { PropertyAttribute, PropertyValue, PropertyStatus } from '../../models/property.interface';
 
 @Component({
   selector: 'app-property-detail',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
-  template: `
-    <div class="page-layout">
-      <header class="page-header">
-        <h1 class="mat-headline-4">Property Details</h1>
-        <div class="header-actions">
-          <button mat-button>
-            <mat-icon>edit</mat-icon>
-            Edit
-          </button>
-          <button mat-button>
-            <mat-icon>share</mat-icon>
-            Share
-          </button>
-        </div>
-      </header>
-
-      <main class="page-content">
-        <mat-card class="content-card">
-          <mat-card-content>
-            <p>Property detail view will be implemented here...</p>
-            <p>This will show all property attributes and customer matches.</p>
-          </mat-card-content>
-        </mat-card>
-      </main>
-    </div>
-  `,
-  styles: [`
-    /* Modern CSS Grid layout using Material Design 3 tokens */
-    .page-layout {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: var(--mat-sys-spacing-lg);
-      min-height: 100vh;
-      padding: var(--mat-sys-spacing-lg);
-      background: var(--mat-sys-background);
-    }
-
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--mat-sys-spacing-md);
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .page-header h1 {
-      margin: 0;
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-headline-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-headline-medium-font-size);
-      font-weight: var(--mat-sys-typescale-headline-medium-font-weight);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: var(--mat-sys-spacing-sm);
-    }
-
-    .header-actions button {
-      display: flex;
-      align-items: center;
-      gap: var(--mat-sys-spacing-xs);
-      height: 40px;
-      border-radius: var(--mat-sys-shape-corner-medium);
-      font-family: var(--mat-sys-typescale-label-large-font-family-name);
-      font-size: var(--mat-sys-typescale-label-large-font-size);
-      color: var(--mat-sys-on-surface);
-    }
-
-    .page-content {
-      display: flex;
-      flex-direction: column;
-      gap: var(--mat-sys-spacing-md);
-    }
-
-    .content-card {
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .content-card mat-card-content {
-      padding: var(--mat-sys-spacing-lg);
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-body-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-body-medium-font-size);
-      line-height: var(--mat-sys-typescale-body-medium-line-height);
-    }
-
-    /* Responsive design using container queries */
-    @container (max-width: 768px) {
-      .page-layout {
-        padding: var(--mat-sys-spacing-md);
-        gap: var(--mat-sys-spacing-md);
-      }
-
-      .page-header {
-        flex-direction: column;
-        gap: var(--mat-sys-spacing-md);
-        align-items: stretch;
-      }
-
-      .header-actions {
-        flex-direction: column;
-        width: 100%;
-      }
-
-      .header-actions button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .page-header h1 {
-        text-align: center;
-        font-size: var(--mat-sys-typescale-headline-small-font-size);
-      }
-    }
-
-    /* High contrast mode support */
-    @media (prefers-contrast: more) {
-      .page-header {
-        border: 2px solid var(--mat-sys-outline);
-      }
-
-      .content-card {
-        border: 2px solid var(--mat-sys-outline);
-      }
-    }
-
-    /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
-      .page-layout,
-      .page-header,
-      .content-card {
-        transition: none;
-      }
-    }
-  `]
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatDividerModule,
+    MatChipsModule,
+    AttributeDisplayComponent
+  ],
+  templateUrl: './property-detail.html',
+  styleUrls: ['./property-detail.scss']
 })
-export class PropertyDetail {}
-export { PropertyDetail as PropertyDetailComponent };
+export class PropertyDetailComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private store = inject(Store);
+  private attributeService = inject(AttributeService);
+  private destroy$ = new Subject<void>();
+
+  // Store selectors
+  property = this.store.selectSignal(selectSelectedProperty);
+  loading = this.store.selectSignal(selectLoading);
+  error = this.store.selectSignal(selectError);
+
+  // Local state
+  attributes = signal<PropertyAttribute[]>([]);
+  attributeValues = signal<PropertyValue[]>([]);
+  attributesLoading = signal(true);
+
+  // Computed properties
+  propertyId = computed(() => {
+    const id = this.route.snapshot.paramMap.get('id');
+    return id ? parseInt(id, 10) : null;
+  });
+
+  statusColor = computed(() => {
+    const prop = this.property();
+    if (!prop) return 'default';
+
+    switch (prop.status) {
+      case PropertyStatus.ACTIVE: return 'primary';
+      case PropertyStatus.PENDING: return 'accent';
+      case PropertyStatus.SOLD: return 'warn';
+      case PropertyStatus.INACTIVE: return 'default';
+      default: return 'default';
+    }
+  });
+
+  ngOnInit(): void {
+    const id = this.propertyId();
+    if (id) {
+      this.loadPropertyData(id);
+    } else {
+      this.router.navigate(['/properties']);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadPropertyData(propertyId: number): void {
+    // Load property details
+    this.store.dispatch(PropertyActions.loadProperty({ id: propertyId }));
+
+    // Load attributes and property attribute values
+    this.attributesLoading.set(true);
+
+    forkJoin({
+      attributes: this.attributeService.getAllAttributes(),
+      attributeValues: this.attributeService.getPropertyAttributeValues(propertyId)
+    }).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: ({ attributes, attributeValues }) => {
+        this.attributes.set(attributes);
+        this.attributeValues.set(attributeValues);
+        this.attributesLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Failed to load attribute data:', error);
+        this.attributesLoading.set(false);
+      }
+    });
+  }
+
+  onEdit(): void {
+    const id = this.propertyId();
+    if (id) {
+      this.router.navigate(['/properties', 'edit', id]);
+    }
+  }
+
+  onShare(): void {
+    // Implementation for sharing functionality
+    console.log('Share property');
+  }
+
+  onBack(): void {
+    this.router.navigate(['/properties']);
+  }
+
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
+  }
+
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+}

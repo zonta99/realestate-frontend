@@ -1,0 +1,136 @@
+<!-- src/app/features/attributes/components/attribute-display/attribute-display.html -->
+<div class="attribute-display">
+  <!-- Categorized display -->
+  @if (groupByCategory) {
+    @for (section of categorizedAttributes(); track section.category) {
+      <mat-card class="mat-elevation-2">
+        <!-- Category header -->
+        <mat-card-header>
+          <div mat-card-avatar>
+            <mat-icon>{{ getCategoryIcon(section.category) }}</mat-icon>
+          </div>
+          <mat-card-title>{{ section.categoryName }}</mat-card-title>
+        </mat-card-header>
+
+        <mat-divider></mat-divider>
+
+        <!-- Category attributes -->
+        <mat-card-content>
+          <div class="attribute-list">
+            @for (item of section.attributes; track item.attribute.id) {
+              <div class="attribute-row">
+                <!-- Attribute label -->
+                <div class="attribute-label">
+                  <span>{{ item.attribute.name }}</span>
+                  @if (item.attribute.isRequired) {
+                    <mat-icon
+                      class="required-icon"
+                      matTooltip="Required field"
+                      color="accent">
+                      star
+                    </mat-icon>
+                  }
+                </div>
+
+                <!-- Attribute value -->
+                <div class="attribute-value">
+                  @if (item.attribute.dataType === PropertyAttributeDataType.BOOLEAN) {
+                    <!-- Boolean display -->
+                    <div class="boolean-display">
+                      <mat-icon [color]="item.displayValue === 'Yes' ? 'primary' : 'warn'">
+                        {{ item.displayValue === 'Yes' ? 'check_circle' : 'cancel' }}
+                      </mat-icon>
+                      <span>{{ item.displayValue }}</span>
+                    </div>
+                  } @else if (item.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT && item.hasValue) {
+                    <!-- Multi-select chips -->
+                    <mat-chip-set>
+                      @for (chip of getMultiSelectChips(item.value?.value || ''); track chip) {
+                        <mat-chip>{{ chip }}</mat-chip>
+                      }
+                    </mat-chip-set>
+                  } @else {
+                    <!-- Regular text display -->
+                    <span [class.empty-value]="!item.hasValue">{{ item.displayValue }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    } @empty {
+      <mat-card>
+        <mat-card-content class="empty-content">
+          <mat-icon>info</mat-icon>
+          <h3>No categories to display</h3>
+          <p>This property has no attribute categories to show.</p>
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+
+  <!-- Flat display -->
+  @if (!groupByCategory) {
+    <mat-card class="mat-elevation-2">
+      <mat-card-header>
+        <div mat-card-avatar>
+          <mat-icon>list</mat-icon>
+        </div>
+        <mat-card-title>Property Attributes</mat-card-title>
+      </mat-card-header>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content>
+        <div class="attribute-list">
+          @for (item of flatAttributes(); track item.attribute.id) {
+            <div class="attribute-row">
+              <!-- Attribute label -->
+              <div class="attribute-label">
+                <span>{{ item.attribute.name }}</span>
+                @if (item.attribute.isRequired) {
+                  <mat-icon
+                    class="required-icon"
+                    matTooltip="Required field"
+                    color="accent">
+                    star
+                  </mat-icon>
+                }
+              </div>
+
+              <!-- Attribute value -->
+              <div class="attribute-value">
+                @if (item.attribute.dataType === PropertyAttributeDataType.BOOLEAN) {
+                  <!-- Boolean display -->
+                  <div class="boolean-display">
+                    <mat-icon [color]="item.displayValue === 'Yes' ? 'primary' : 'warn'">
+                      {{ item.displayValue === 'Yes' ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                    <span>{{ item.displayValue }}</span>
+                  </div>
+                } @else if (item.attribute.dataType === PropertyAttributeDataType.MULTI_SELECT && item.hasValue) {
+                  <!-- Multi-select chips -->
+                  <mat-chip-set>
+                    @for (chip of getMultiSelectChips(item.value?.value || ''); track chip) {
+                      <mat-chip>{{ chip }}</mat-chip>
+                    }
+                  </mat-chip-set>
+                } @else {
+                  <!-- Regular text display -->
+                  <span [class.empty-value]="!item.hasValue">{{ item.displayValue }}</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-content">
+              <mat-icon>info</mat-icon>
+              <h3>No attributes to display</h3>
+              <p>This property has no attribute values to show.</p>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

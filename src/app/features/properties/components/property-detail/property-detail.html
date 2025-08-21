@@ -1,0 +1,134 @@
+<!-- src/app/features/properties/components/property-detail/property-detail.html -->
+<div class="property-detail-container">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <p class="mat-body-medium">Loading property details...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon color="warn">error</mat-icon>
+          <div>
+            <h3>Error Loading Property</h3>
+            <p>{{ error()?.message || 'Unable to load property details' }}</p>
+          </div>
+        </div>
+        <div class="error-actions">
+          <button mat-button (click)="onBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Properties
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Property Content -->
+  @if (property() && !loading()) {
+    <!-- Header -->
+    <header class="property-header">
+      <div class="header-content">
+        <div class="header-info">
+          <button mat-icon-button (click)="onBack()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="title-section">
+            <h1 class="mat-headline-medium">{{ property()!.title }}</h1>
+            <div class="property-meta">
+              <mat-chip [color]="statusColor()">
+                {{ property()!.status }}
+              </mat-chip>
+              <span class="agent-info">by {{ property()!.agentName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="onEdit()">
+            <mat-icon>edit</mat-icon>
+            Edit Property
+          </button>
+          <button mat-button (click)="onShare()">
+            <mat-icon>share</mat-icon>
+            Share
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="property-content">
+      <!-- Basic Information Card -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <div mat-card-avatar class="info-avatar">
+            <mat-icon>info</mat-icon>
+          </div>
+          <mat-card-title>Basic Information</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="basic-info-grid">
+            <div class="info-item">
+              <span class="info-label">Price</span>
+              <span class="info-value price">{{ formatPrice(property()!.price) }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Status</span>
+              <mat-chip [color]="statusColor()">{{ property()!.status }}</mat-chip>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Agent</span>
+              <span class="info-value">{{ property()!.agentName }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Created</span>
+              <span class="info-value">{{ formatDate(property()!.createdDate) }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Last Updated</span>
+              <span class="info-value">{{ formatDate(property()!.updatedDate) }}</span>
+            </div>
+          </div>
+
+          <mat-divider class="info-divider"></mat-divider>
+
+          <div class="description-section">
+            <h3 class="mat-headline-small">Description</h3>
+            <p class="mat-body-large description-text">{{ property()!.description }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Property Attributes Section -->
+      <div class="attributes-section">
+        @if (attributesLoading()) {
+          <mat-card class="attributes-loading-card">
+            <mat-card-content>
+              <div class="loading-content">
+                <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                <p class="mat-body-medium">Loading property attributes...</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        } @else {
+          <app-attribute-display
+            [attributes]="attributes()"
+            [values]="attributeValues()"
+            [showEmptyValues]="false"
+            [groupByCategory]="true">
+          </app-attribute-display>
+        }
+      </div>
+    </div>
+  }
+</div>

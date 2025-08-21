@@ -1,0 +1,213 @@
+/* src/app/features/attributes/components/attribute-display/attribute-display.scss */
+
+.attribute-display {
+  width: 100%;
+
+  // Categorized display
+  .categorized-display {
+    .category-card {
+      margin-bottom: 24px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .category-header {
+        .category-avatar {
+          background-color: var(--mat-primary-500);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          mat-icon {
+            font-size: 20px;
+          }
+        }
+
+        .category-title {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 500;
+        }
+      }
+
+      .category-content {
+        padding: 16px;
+      }
+    }
+  }
+
+  // Flat display
+  .flat-display {
+    .attributes-card {
+      mat-card-content {
+        padding: 16px;
+      }
+    }
+  }
+
+  // Attribute grid layout
+  .attribute-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+
+    .attribute-item {
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      background-color: #fafafa;
+      transition: all 0.2s ease-in-out;
+
+      &.has-value {
+        background-color: white;
+        border-color: rgba(0, 0, 0, 0.2);
+      }
+
+      &.no-value {
+        opacity: 0.7;
+      }
+
+      .attribute-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .required-icon {
+          font-size: 12px;
+          color: #f44336;
+        }
+      }
+
+      .attribute-value {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.87);
+        min-height: 20px;
+        display: flex;
+        align-items: center;
+
+        .boolean-value {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          mat-icon {
+            font-size: 18px;
+
+            &.true-value {
+              color: #4caf50;
+            }
+
+            &.false-value {
+              color: #f44336;
+            }
+          }
+        }
+
+        .multi-select-chips {
+          width: 100%;
+
+          mat-chip-set {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin: 0;
+          }
+
+          mat-chip {
+            font-size: 12px;
+            height: 24px;
+            background-color: rgba(0, 0, 0, 0.08);
+          }
+        }
+
+        .text-value {
+          width: 100%;
+          word-break: break-word;
+
+          &.empty-value {
+            color: rgba(0, 0, 0, 0.38);
+            font-style: italic;
+          }
+        }
+      }
+    }
+  }
+
+  // Empty state
+  .empty-state {
+    .empty-card {
+      text-align: center;
+
+      .empty-content {
+        padding: 48px 24px;
+
+        .empty-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          color: rgba(0, 0, 0, 0.38);
+          margin-bottom: 16px;
+        }
+
+        h3 {
+          margin: 0 0 8px 0;
+          font-size: 20px;
+          font-weight: 500;
+          color: rgba(0, 0, 0, 0.6);
+        }
+
+        p {
+          margin: 0;
+          color: rgba(0, 0, 0, 0.4);
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .attribute-display {
+    .attribute-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+
+      .attribute-item {
+        padding: 8px 12px;
+      }
+    }
+
+    .categorized-display {
+      .category-card {
+        margin-bottom: 16px;
+
+        .category-content {
+          padding: 12px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .attribute-display {
+    .attribute-grid {
+      gap: 8px;
+    }
+
+    .categorized-display {
+      .category-card {
+        margin-bottom: 12px;
+      }
+    }
+  }
+}

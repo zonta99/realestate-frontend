@@ -1,0 +1,132 @@
+<!-- src/app/features/attributes/components/attribute-form-field/attribute-form-field.html -->
+<div class="attribute-form-field">
+  @if (attribute.dataType === PropertyAttributeDataType.TEXT) {
+    <!-- TEXT input -->
+    <mat-form-field class="full-width">
+      <mat-label>{{ attribute.name }}</mat-label>
+      <input matInput
+             [formControl]="formControl"
+             [placeholder]="attribute.name">
+      @if (attribute.isRequired) {
+        <mat-icon matSuffix color="accent">star</mat-icon>
+      }
+      @if (formControl.invalid && formControl.touched) {
+        <mat-error>{{ getErrorMessage() }}</mat-error>
+      }
+    </mat-form-field>
+  } @else if (attribute.dataType === PropertyAttributeDataType.NUMBER) {
+    <!-- NUMBER input -->
+    <mat-form-field class="full-width">
+      <mat-label>{{ attribute.name }}</mat-label>
+      <input matInput
+             type="number"
+             [formControl]="formControl"
+             [placeholder]="attribute.name">
+      @if (attribute.isRequired) {
+        <mat-icon matSuffix color="accent">star</mat-icon>
+      }
+      @if (formControl.invalid && formControl.touched) {
+        <mat-error>{{ getErrorMessage() }}</mat-error>
+      }
+    </mat-form-field>
+  } @else if (attribute.dataType === PropertyAttributeDataType.BOOLEAN) {
+    <!-- BOOLEAN checkbox -->
+    <div class="boolean-field">
+      <mat-checkbox [formControl]="formControl">
+        {{ attribute.name }}
+        @if (attribute.isRequired) {
+          <mat-icon color="accent" class="required-icon">star</mat-icon>
+        }
+      </mat-checkbox>
+      @if (formControl.invalid && formControl.touched) {
+        <div class="mat-error">{{ getErrorMessage() }}</div>
+      }
+    </div>
+  } @else if (attribute.dataType === PropertyAttributeDataType.DATE) {
+    <!-- DATE input -->
+    <mat-form-field class="full-width">
+      <mat-label>{{ attribute.name }}</mat-label>
+      <input matInput
+             [matDatepicker]="datePicker"
+             [formControl]="formControl"
+             readonly>
+      <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+      <mat-datepicker #datePicker></mat-datepicker>
+      @if (attribute.isRequired) {
+        <mat-icon matSuffix color="accent">star</mat-icon>
+      }
+      @if (formControl.invalid && formControl.touched) {
+        <mat-error>{{ getErrorMessage() }}</mat-error>
+      }
+    </mat-form-field>
+  } @else if (attribute.dataType === PropertyAttributeDataType.SINGLE_SELECT) {
+    <!-- SINGLE_SELECT dropdown -->
+    <mat-form-field class="full-width">
+      <mat-label>{{ attribute.name }}</mat-label>
+      <mat-select [formControl]="formControl">
+        @for (option of availableOptions(); track option.id) {
+          <mat-option [value]="option.optionValue">
+            {{ option.optionValue }}
+          </mat-option>
+        }
+      </mat-select>
+      @if (attribute.isRequired) {
+        <mat-icon matSuffix color="accent">star</mat-icon>
+      }
+      @if (formControl.invalid && formControl.touched) {
+        <mat-error>{{ getErrorMessage() }}</mat-error>
+      }
+    </mat-form-field>
+  }
+
+  @else if (attribute.dataType === PropertyAttributeDataType.MULTI_SELECT) {
+    <!-- MULTI_SELECT chips -->
+    <div class="multi-select-field">
+      <label class="field-label">
+        {{ attribute.name }}
+        @if (attribute.isRequired) {
+          <mat-icon color="accent" class="required-icon">star</mat-icon>
+        }
+      </label>
+
+      <!-- Available options as chips -->
+      @if (availableOptions().length > 0) {
+        <div class="available-options">
+          <span class="options-label">Available options:</span>
+          <mat-chip-set class="option-chips">
+            @for (option of availableOptions(); track option.id) {
+              <mat-chip
+                [class.selected]="isChipSelected(option.optionValue)"
+                (click)="toggleChip(option.optionValue)">
+                {{ option.optionValue }}
+                @if (isChipSelected(option.optionValue)) {
+                  <mat-icon matChipTrailingIcon>check</mat-icon>
+                }
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      }
+
+      <!-- Selected values display -->
+      @if (multiSelectValues().length > 0) {
+        <div class="selected-values">
+          <span class="values-label">Selected:</span>
+          <mat-chip-set class="selected-chips">
+            @for (value of multiSelectValues(); track value) {
+              <mat-chip (removed)="removeChip(value)">
+                {{ value }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            }
+          </mat-chip-set>
+        </div>
+      }
+
+      <!-- Validation error -->
+      @if (attribute.isRequired && multiSelectValues().length === 0) {
+        <div class="mat-error">{{ attribute.name }} is required</div>
+      }
+    </div>
+  }
+</div>

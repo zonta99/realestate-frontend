@@ -109,6 +109,56 @@
               </mat-form-field>
             </div>
 
+            <!-- Dynamic Attributes Section -->
+            <div class="attributes-section">
+              <mat-divider></mat-divider>
+
+              <div class="section-header">
+                <h3 class="mat-headline-small">Property Attributes</h3>
+                <p class="mat-body-medium">Additional property information</p>
+              </div>
+
+              @if (attributesLoading()) {
+                <div class="attributes-loading">
+                  <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                  <p class="mat-body-medium">Loading attributes...</p>
+                </div>
+              } @else {
+                <!-- Categorized Attributes -->
+                <mat-accordion multi="true" class="attributes-accordion">
+                  @for (categoryEntry of categorizedAttributes() | keyvalue; track trackByCategory($index, categoryEntry)) {
+                    <mat-expansion-panel
+                      [expanded]="categoryEntry.key === 'BASICS'"
+                      class="category-panel">
+
+                      <!-- Panel Header -->
+                      <mat-expansion-panel-header>
+                        <mat-panel-title>
+                          <mat-icon class="category-icon">{{ getCategoryIcon(categoryEntry.key) }}</mat-icon>
+                          {{ getCategoryDisplayName(categoryEntry.key) }}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                          {{ categoryEntry.value.length }}
+                          {{ categoryEntry.value.length === 1 ? 'attribute' : 'attributes' }}
+                        </mat-panel-description>
+                      </mat-expansion-panel-header>
+
+                      <!-- Panel Content -->
+                      <div class="category-attributes">
+                        @for (attribute of categoryEntry.value; track trackByAttribute($index, attribute)) {
+                          <app-attribute-form-field
+                            [attribute]="attribute"
+                            [disabled]="creating()"
+                            (valueChange)="onAttributeValueChange($event)">
+                          </app-attribute-form-field>
+                        }
+                      </div>
+                    </mat-expansion-panel>
+                  }
+                </mat-accordion>
+              }
+            </div>
+
             @if (error()) {
               <mat-card appearance="outlined" class="error-card">
                 <mat-card-content class="error-content">

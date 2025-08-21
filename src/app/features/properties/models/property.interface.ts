@@ -10,6 +10,7 @@ export interface Property {
   status: PropertyStatus;
   createdDate: string;
   updatedDate: string;
+  attributeValues?: PropertyValue[];
 }
 
 export interface CreatePropertyRequest {
@@ -102,11 +103,60 @@ export enum PropertyStatus {
 }
 
 export enum PropertyAttributeDataType {
-  STRING = 'STRING',
-  INTEGER = 'INTEGER',
-  DECIMAL = 'DECIMAL',
+  TEXT = 'TEXT',
+  NUMBER = 'NUMBER',
   BOOLEAN = 'BOOLEAN',
-  DATE = 'DATE'
+  DATE = 'DATE',
+  SINGLE_SELECT = 'SINGLE_SELECT',
+  MULTI_SELECT = 'MULTI_SELECT'
+}
+
+export enum PropertyCategory {
+  BASICS = 'BASICS',
+  INTERIOR = 'INTERIOR',
+  EXTERIOR = 'EXTERIOR',
+  NEIGHBORHOOD = 'NEIGHBORHOOD',
+  AMENITIES = 'AMENITIES',
+  OTHER = 'OTHER'
+}
+
+export interface PropertyAttribute {
+  id: number;
+  name: string;
+  dataType: PropertyAttributeDataType;
+  isRequired: boolean;
+  isSearchable: boolean;
+  category: PropertyCategory;
+  displayOrder: number;
+  createdDate: string;
+  updatedDate: string;
+  options: PropertyAttributeOption[] | null;
+}
+
+export interface PropertyAttributeOption {
+  id: number;
+  attributeId: number;
+  optionValue: string;
+  displayOrder: number;
+}
+
+export interface CreateAttributeRequest {
+  name: string;
+  dataType: PropertyAttributeDataType;
+  isRequired: boolean;
+  isSearchable: boolean;
+  category: PropertyCategory;
+  displayOrder?: number;
+}
+
+export interface CreateAttributeOptionRequest {
+  optionValue: string;
+  displayOrder?: number;
+}
+
+export interface SetAttributeValueRequest {
+  attributeId: number;
+  value: any;
 }
 
 export interface ApiResponse<T = any> {
