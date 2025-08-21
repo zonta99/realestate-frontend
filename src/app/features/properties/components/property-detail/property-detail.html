@@ -111,14 +111,11 @@
 
       <!-- Property Attributes Section -->
       <div class="attributes-section">
-        @if (attributes().length > 0 && attributeValues().length > 0) {
-          <app-attribute-display
-            [attributes]="attributes()"
-            [values]="attributeValues()"
-            [showEmptyValues]="false"
-            [groupByCategory]="true">
-          </app-attribute-display>
-        } @else if (attributes().length > 0) {
+        @if (attributeValues().length > 0) {
+          <app-property-values-display
+            [values]="attributeValues()">
+          </app-property-values-display>
+        } @else {
           <!-- Show message when no attribute values exist -->
           <mat-card class="no-attributes-card">
             <mat-card-content>

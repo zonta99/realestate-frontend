@@ -211,18 +211,43 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   }
 
   onAttributeValueChange(event: { attributeId: number; value: any }): void {
-    // Update change tracking service
-    this.changeTrackingService.updateCurrentValue(event.attributeId, event.value);
+    // Find the attribute to get its data type
+    const attribute = this.attributes().find(attr => attr.id === event.attributeId);
+    const dataType = attribute?.dataType;
 
-    // Update current values for display
+    // Update change tracking service with data type information
+    this.changeTrackingService.updateCurrentValue(event.attributeId, event.value, dataType);
+
+    // Update current values for display - use the same logic as change tracking
     const currentValues = new Map(this.attributeValues());
 
-    if (event.value === null || event.value === undefined || event.value === '') {
-      currentValues.delete(event.attributeId);
+    let normalizedValue = event.value;
+    if (dataType) {
+      switch (dataType) {
+        case 'TEXT':
+        case 'SINGLE_SELECT':
+          normalizedValue = (event.value === '') ? null : event.value;
+          break;
+        case 'BOOLEAN':
+          normalizedValue = (event.value === undefined) ? null : event.value;
+          break;
+        case 'NUMBER':
+          normalizedValue = (event.value === '' || (typeof event.value === 'string' && event.value.trim() === '')) ? null : event.value;
+          break;
+        case 'MULTI_SELECT':
+          normalizedValue = (event.value === undefined) ? null : event.value;
+          break;
+        case 'DATE':
+          normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
+          break;
+        default:
+          normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
+      }
     } else {
-      currentValues.set(event.attributeId, event.value);
+      normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
     }
 
+    currentValues.set(event.attributeId, normalizedValue);
     this.attributeValues.set(currentValues);
   }
 
@@ -322,26 +347,24 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   // Utility methods for template
   getCategoryIcon(category: PropertyCategory): string {
     const iconMap: { [key in PropertyCategory]: string } = {
-      [PropertyCategory.BASICS]: 'info',
-      [PropertyCategory.INTERIOR]: 'home',
-      [PropertyCategory.EXTERIOR]: 'landscape',
-      [PropertyCategory.NEIGHBORHOOD]: 'location_city',
-      [PropertyCategory.AMENITIES]: 'pool',
-      [PropertyCategory.OTHER]: 'more_horiz'
+      [PropertyCategory.BASIC]: 'info',
+      [PropertyCategory.FEATURES]: 'star',
+      [PropertyCategory.FINANCIAL]: 'attach_money',
+      [PropertyCategory.LOCATION]: 'location_on',
+      [PropertyCategory.STRUCTURE]: 'architecture'
     };
     return iconMap[category] || 'info';
   }
 
   getCategoryDisplayName(category: PropertyCategory): string {
     const nameMap: { [key in PropertyCategory]: string } = {
-      [PropertyCategory.BASICS]: 'Basic Information',
-      [PropertyCategory.INTERIOR]: 'Interior Features',
-      [PropertyCategory.EXTERIOR]: 'Exterior Features',
-      [PropertyCategory.NEIGHBORHOOD]: 'Neighborhood',
-      [PropertyCategory.AMENITIES]: 'Amenities',
-      [PropertyCategory.OTHER]: 'Other'
+      [PropertyCategory.BASIC]: 'Basic Information',
+      [PropertyCategory.FEATURES]: 'Features',
+      [PropertyCategory.FINANCIAL]: 'Financial Information',
+      [PropertyCategory.LOCATION]: 'Location',
+      [PropertyCategory.STRUCTURE]: 'Structure'
     };
-    return nameMap[category] || 'Other';
+    return nameMap[category] || 'Basic Information';
   }
 
   getAttributeValue(attributeId: number): any {

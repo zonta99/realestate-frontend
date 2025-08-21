@@ -10,9 +10,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { Subject, takeUntil } from 'rxjs';
 import { PropertyService, PropertyFullData } from '../../services/property.service';
-import { AttributeService } from '../../../attributes/services/attribute.service';
-import { AttributeDisplayComponent } from '../../../attributes/components/attribute-display/attribute-display';
-import { PropertyAttribute, PropertyStatus } from '../../models/property.interface';
+import { PropertyValuesDisplayComponent } from '../property-values-display/property-values-display';
+import { PropertyStatus } from '../../models/property.interface';
 
 @Component({
   selector: 'app-property-detail',
@@ -26,7 +25,7 @@ import { PropertyAttribute, PropertyStatus } from '../../models/property.interfa
     MatProgressBarModule,
     MatDividerModule,
     MatChipsModule,
-    AttributeDisplayComponent
+    PropertyValuesDisplayComponent
   ],
   templateUrl: './property-detail.html',
   styleUrls: ['./property-detail.scss']
@@ -35,14 +34,12 @@ export class PropertyDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private propertyService = inject(PropertyService);
-  private attributeService = inject(AttributeService);
   private destroy$ = new Subject<void>();
 
   // Signals for reactive state
   loading = signal(true);
   error = signal<string | null>(null);
   propertyData = signal<PropertyFullData | null>(null);
-  attributes = signal<PropertyAttribute[]>([]);
 
   // Computed properties
   propertyId = computed(() => {
@@ -84,35 +81,20 @@ export class PropertyDetailComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    // Load property data and attributes in parallel
-    const propertyRequest = this.propertyService.getPropertyFullData(propertyId);
-    const attributesRequest = this.attributeService.getAllAttributes();
-
-    // Using Promise.all equivalent with observables
-    propertyRequest.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => {
-        this.propertyData.set(data);
-
-        // Load attributes
-        attributesRequest.pipe(takeUntil(this.destroy$)).subscribe({
-          next: (attributes) => {
-            this.attributes.set(attributes);
-            this.loading.set(false);
-          },
-          error: (error) => {
-            console.error('Failed to load attributes:', error);
-            // Continue without attributes
-            this.attributes.set([]);
-            this.loading.set(false);
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Failed to load property data:', error);
-        this.error.set('Failed to load property details. Please try again.');
-        this.loading.set(false);
-      }
-    });
+    // Load property data with attribute values
+    this.propertyService.getPropertyFullData(propertyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.propertyData.set(data);
+          this.loading.set(false);
+        },
+        error: (error) => {
+          console.error('Failed to load property data:', error);
+          this.error.set('Failed to load property details. Please try again.');
+          this.loading.set(false);
+        }
+      });
   }
 
   onEdit(): void {

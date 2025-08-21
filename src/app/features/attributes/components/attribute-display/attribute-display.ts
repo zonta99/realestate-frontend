@@ -76,12 +76,11 @@ export class AttributeDisplayComponent implements OnInit {
 
     // Define category display order and names
     const categoryOrder: { [key in PropertyCategory]: string } = {
-      [PropertyCategory.BASICS]: 'Basic Information',
-      [PropertyCategory.INTERIOR]: 'Interior Features',
-      [PropertyCategory.EXTERIOR]: 'Exterior Features',
-      [PropertyCategory.NEIGHBORHOOD]: 'Neighborhood',
-      [PropertyCategory.AMENITIES]: 'Amenities',
-      [PropertyCategory.OTHER]: 'Other'
+      [PropertyCategory.BASIC]: 'Basic Information',
+      [PropertyCategory.FEATURES]: 'Features',
+      [PropertyCategory.FINANCIAL]: 'Financial Information',
+      [PropertyCategory.LOCATION]: 'Location',
+      [PropertyCategory.STRUCTURE]: 'Structure'
     };
 
     // Process each category in order
@@ -163,12 +162,11 @@ export class AttributeDisplayComponent implements OnInit {
   // Utility methods for template
   getCategoryIcon(category: PropertyCategory): string {
     const iconMap: { [key in PropertyCategory]: string } = {
-      [PropertyCategory.BASICS]: 'info',
-      [PropertyCategory.INTERIOR]: 'home',
-      [PropertyCategory.EXTERIOR]: 'landscape',
-      [PropertyCategory.NEIGHBORHOOD]: 'location_city',
-      [PropertyCategory.AMENITIES]: 'pool',
-      [PropertyCategory.OTHER]: 'more_horiz'
+      [PropertyCategory.BASIC]: 'info',
+      [PropertyCategory.FEATURES]: 'star',
+      [PropertyCategory.FINANCIAL]: 'attach_money',
+      [PropertyCategory.LOCATION]: 'location_on',
+      [PropertyCategory.STRUCTURE]: 'architecture'
     };
     return iconMap[category] || 'info';
   }

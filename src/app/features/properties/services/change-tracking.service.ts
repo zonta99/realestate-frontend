@@ -68,16 +68,46 @@ export class ChangeTrackingService {
     this.currentValues.set(new Map(values));
   }
 
-  // Update current value for an attribute
-  updateCurrentValue(attributeId: number, value: any): void {
+  // Update current value for an attribute with optional data type
+  updateCurrentValue(attributeId: number, value: any, dataType?: string): void {
     const current = new Map(this.currentValues());
 
-    if (value === null || value === undefined || value === '') {
-      current.delete(attributeId);
+    // Handle empty values based on data type requirements
+    let normalizedValue = value;
+
+    if (dataType) {
+      switch (dataType) {
+        case 'TEXT':
+        case 'SINGLE_SELECT':
+          // Only normalize to null if empty string
+          normalizedValue = (value === '') ? null : value;
+          break;
+        case 'BOOLEAN':
+          // Only normalize to null if undefined
+          normalizedValue = (value === undefined) ? null : value;
+          break;
+        case 'NUMBER':
+          // Only normalize to null if empty string, keep 0 as valid
+          normalizedValue = (value === '' || (typeof value === 'string' && value.trim() === '')) ? null : value;
+          break;
+        case 'MULTI_SELECT':
+          // Only normalize to null if undefined
+          normalizedValue = (value === undefined) ? null : value;
+          break;
+        case 'DATE':
+          // Keep existing logic for dates
+          normalizedValue = (value === null || value === undefined || value === '') ? null : value;
+          break;
+        default:
+          // Keep existing logic for unknown types
+          normalizedValue = (value === null || value === undefined || value === '') ? null : value;
+      }
     } else {
-      current.set(attributeId, value);
+      // Fallback to original logic when no data type provided
+      normalizedValue = (value === null || value === undefined || value === '') ? null : value;
     }
 
+    current.set(attributeId, normalizedValue);
     this.currentValues.set(current);
   }
 
@@ -113,11 +143,10 @@ export class ChangeTrackingService {
     this.currentValues.set(new Map());
   }
 
-  // Helper method to compare values deeply
   private areValuesEqual(value1: any, value2: any): boolean {
     if (value1 === value2) return true;
 
-    // Handle null/undefined cases
+    // Handle null/undefined cases - both null/undefined are considered equal
     if ((value1 == null && value2 == null)) return true;
     if (value1 == null || value2 == null) return false;
 

@@ -112,12 +112,11 @@ export enum PropertyAttributeDataType {
 }
 
 export enum PropertyCategory {
-  BASICS = 'BASICS',
-  INTERIOR = 'INTERIOR',
-  EXTERIOR = 'EXTERIOR',
-  NEIGHBORHOOD = 'NEIGHBORHOOD',
-  AMENITIES = 'AMENITIES',
-  OTHER = 'OTHER'
+  BASIC = 'BASIC',
+  FEATURES = 'FEATURES',
+  FINANCIAL = 'FINANCIAL',
+  LOCATION = 'LOCATION',
+  STRUCTURE = 'STRUCTURE'
 }
 
 export interface PropertyAttribute {

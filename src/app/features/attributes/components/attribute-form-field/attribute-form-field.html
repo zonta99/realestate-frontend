@@ -47,15 +47,16 @@
         }
       </label>
 
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="cycleBooleanValue()"
-        [disabled]="disabled"
-        class="boolean-toggle-button">
-        <mat-icon>{{ getBooleanIcon() }}</mat-icon>
-        {{ getBooleanLabel() }}
-      </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="cycleBooleanValue()"
+      [disabled]="disabled"
+      class="boolean-toggle-button">
+      <mat-icon>{{ getBooleanIcon() }}</mat-icon>
+      {{ getBooleanLabel() }}
+    </button>
 
       @if (formControl.invalid && formControl.touched) {
         <div class="mat-error">{{ getErrorMessage() }}</div>
