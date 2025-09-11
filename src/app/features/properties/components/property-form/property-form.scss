@@ -12,8 +12,7 @@
 }
 
 .form-layout {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+
   gap: var(--mat-sys-spacing-large, 24px);
   max-width: 1200px;
   width: 100%;

@@ -225,42 +225,6 @@
           </form>
         </mat-card>
 
-        <!-- Property Tips -->
-        <mat-card appearance="outlined" class="tips-card mat-elevation-1">
-          <mat-card-header>
-            <div mat-card-avatar class="tips-avatar">
-              <mat-icon>lightbulb</mat-icon>
-            </div>
-            <mat-card-title class="mat-headline-small">
-              {{ isEditMode() ? 'Editing Tips' : 'Property Creation Tips' }}
-            </mat-card-title>
-            <mat-card-subtitle class="mat-body-medium">
-              {{ isEditMode() ? 'Best practices for updating properties' : 'Best practices for creating properties' }}
-            </mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="tips-list">
-              <div class="tip-item">
-                <mat-icon color="primary">check_circle</mat-icon>
-                <span class="mat-body-medium">Use a descriptive and engaging title</span>
-              </div>
-              <div class="tip-item">
-                <mat-icon color="primary">check_circle</mat-icon>
-                <span class="mat-body-medium">Provide detailed information about the property</span>
-              </div>
-              <div class="tip-item">
-                <mat-icon color="primary">check_circle</mat-icon>
-                <span class="mat-body-medium">Set a competitive and realistic price</span>
-              </div>
-              <div class="tip-item">
-                <mat-icon color="primary">check_circle</mat-icon>
-                <span class="mat-body-medium">
-                  {{ isEditMode() ? 'Review all attribute values for accuracy' : 'Fill in relevant attributes to help buyers' }}
-                </span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
       </div>
     }
   </div>

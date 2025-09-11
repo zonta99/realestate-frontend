@@ -1,137 +1,127 @@
 <!-- src/app/features/properties/components/property-detail/property-detail.html -->
-<div class="property-detail-container">
+<div style="padding: 16px; max-width: 1200px; margin: 0 auto;">
   <!-- Loading State -->
   @if (loading()) {
-    <div class="loading-container">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      <p class="mat-body-medium">Loading property details...</p>
-    </div>
+    <mat-card>
+      <mat-card-content style="text-align: center; padding: 48px;">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p class="mat-body-1" style="margin-top: 16px;">Loading property details...</p>
+      </mat-card-content>
+    </mat-card>
   }
 
   <!-- Error State -->
   @if (error()) {
-    <mat-card class="error-card">
+    <mat-card>
       <mat-card-content>
-        <div class="error-content">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
           <mat-icon color="warn">error</mat-icon>
           <div>
-            <h3>Error Loading Property</h3>
-            <p>{{ error() }}</p>
+            <h3 class="mat-headline-small">Error Loading Property</h3>
+            <p class="mat-body-1">{{ error() }}</p>
           </div>
         </div>
-        <div class="error-actions">
-          <button mat-button (click)="onBack()">
-            <mat-icon>arrow_back</mat-icon>
-            Back to Properties
-          </button>
-        </div>
+        <button mat-button (click)="onBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Properties
+        </button>
       </mat-card-content>
     </mat-card>
   }
 
   <!-- Property Content -->
   @if (property() && !loading() && !error()) {
-    <!-- Header -->
-    <header class="property-header">
-      <div class="header-content">
-        <div class="header-info">
-          <button mat-icon-button (click)="onBack()" class="back-button">
-            <mat-icon>arrow_back</mat-icon>
-          </button>
-          <div class="title-section">
-            <h1 class="mat-headline-medium">{{ property()!.title }}</h1>
-            <div class="property-meta">
-              <mat-chip [color]="statusColor()">
-                {{ property()!.status }}
-              </mat-chip>
-              <span class="agent-info">by {{ property()!.agentName }}</span>
+    <!-- Header Card -->
+    <mat-card style="margin-bottom: 16px;">
+      <mat-card-content>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 300px;">
+            <button mat-icon-button (click)="onBack()">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div>
+              <h1 class="mat-headline-medium" style="margin: 0 0 8px 0;">{{ property()!.title }}</h1>
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <mat-chip [color]="statusColor()">{{ property()!.status }}</mat-chip>
+                <span class="mat-body-2">by {{ property()!.agentName }}</span>
+              </div>
             </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button mat-raised-button color="primary" (click)="onEdit()">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button mat-stroked-button (click)="onShare()">
+              <mat-icon>share</mat-icon>
+              Share
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Basic Information Card -->
+    <mat-card style="margin-bottom: 16px;">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>info</mat-icon>
+        <mat-card-title>Basic Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Price (prominent) -->
+        <div style="margin-bottom: 24px;">
+          <span class="mat-body-2">PRICE</span>
+          <div class="mat-headline-large" style="color: var(--mat-primary-500); font-weight: 600;">
+            {{ formatPrice(property()!.price) }}
           </div>
         </div>
 
-        <div class="header-actions">
-          <button mat-raised-button color="primary" (click)="onEdit()">
-            <mat-icon>edit</mat-icon>
-            Edit Property
-          </button>
-          <button mat-button (click)="onShare()">
-            <mat-icon>share</mat-icon>
-            Share
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <div class="property-content">
-      <!-- Basic Information Card -->
-      <mat-card class="info-card">
-        <mat-card-header>
-          <div mat-card-avatar class="info-avatar">
-            <mat-icon>info</mat-icon>
-          </div>
-          <mat-card-title>Basic Information</mat-card-title>
-        </mat-card-header>
-
-        <mat-card-content>
-          <div class="basic-info-grid">
-            <div class="info-item">
-              <span class="info-label">Price</span>
-              <span class="info-value price">{{ formatPrice(property()!.price) }}</span>
-            </div>
-
-            <div class="info-item">
-              <span class="info-label">Status</span>
+        <!-- Info Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div>
+            <span class="mat-body-2">STATUS</span>
+            <div style="margin-top: 4px;">
               <mat-chip [color]="statusColor()">{{ property()!.status }}</mat-chip>
             </div>
-
-            <div class="info-item">
-              <span class="info-label">Agent</span>
-              <span class="info-value">{{ property()!.agentName }}</span>
-            </div>
-
-            <div class="info-item">
-              <span class="info-label">Created</span>
-              <span class="info-value">{{ formatDate(property()!.createdDate) }}</span>
-            </div>
-
-            <div class="info-item">
-              <span class="info-label">Last Updated</span>
-              <span class="info-value">{{ formatDate(property()!.updatedDate) }}</span>
-            </div>
           </div>
-
-          <mat-divider class="info-divider"></mat-divider>
-
-          <div class="description-section">
-            <h3 class="mat-headline-small">Description</h3>
-            <p class="mat-body-large description-text">{{ property()!.description }}</p>
+          <div>
+            <span class="mat-body-2">AGENT</span>
+            <div class="mat-body-1" style="margin-top: 4px;">{{ property()!.agentName }}</div>
           </div>
+          <div>
+            <span class="mat-body-2">CREATED</span>
+            <div class="mat-body-1" style="margin-top: 4px;">{{ formatDate(property()!.createdDate) }}</div>
+          </div>
+          <div>
+            <span class="mat-body-2">UPDATED</span>
+            <div class="mat-body-1" style="margin-top: 4px;">{{ formatDate(property()!.updatedDate) }}</div>
+          </div>
+        </div>
+
+        <mat-divider style="margin: 16px 0;"></mat-divider>
+
+        <div>
+          <h3 class="mat-headline-small" style="margin: 0 0 12px 0;">Description</h3>
+          <p class="mat-body-1" style="margin: 0; line-height: 1.6;">{{ property()!.description }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Property Attributes Section -->
+    @if (attributeValues().length > 0) {
+      <app-property-values-display [values]="attributeValues()"></app-property-values-display>
+    } @else {
+      <mat-card>
+        <mat-card-content style="text-align: center; padding: 48px;">
+          <mat-icon style="font-size: 48px; width: 48px; height: 48px; margin-bottom: 16px;">info</mat-icon>
+          <h3 class="mat-headline-small" style="margin: 0 0 8px 0;">No Additional Information</h3>
+          <p class="mat-body-1" style="margin: 0 0 24px 0;">This property doesn't have any additional attribute values set.</p>
+          <button mat-raised-button color="primary" (click)="onEdit()">
+            <mat-icon>add</mat-icon>
+            Add Property Details
+          </button>
         </mat-card-content>
       </mat-card>
-
-      <!-- Property Attributes Section -->
-      <div class="attributes-section">
-        @if (attributeValues().length > 0) {
-          <app-property-values-display
-            [values]="attributeValues()">
-          </app-property-values-display>
-        } @else {
-          <!-- Show message when no attribute values exist -->
-          <mat-card class="no-attributes-card">
-            <mat-card-content>
-              <div class="no-attributes-content">
-                <mat-icon>info</mat-icon>
-                <h3>No Additional Information</h3>
-                <p>This property doesn't have any additional attribute values set.</p>
-                <button mat-raised-button color="primary" (click)="onEdit()">
-                  <mat-icon>add</mat-icon>
-                  Add Property Details
-                </button>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        }
-      </div>
-    </div>
+    }
   }
 </div>

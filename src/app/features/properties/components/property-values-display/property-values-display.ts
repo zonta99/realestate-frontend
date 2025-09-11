@@ -45,7 +45,7 @@ interface CategorySection {
               <mat-card-title>{{ section.categoryName }}</mat-card-title>
             </mat-card-header>
 
-            <mat-divider></mat-divider>
+            <mat-divider/>
 
             <!-- Category values -->
             <mat-card-content>
@@ -111,6 +111,7 @@ interface CategorySection {
     }
 
     .values-grid {
+      margin-top: 1rem;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1rem;
@@ -124,7 +125,6 @@ interface CategorySection {
 
     .value-label {
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.87);
       font-size: 0.875rem;
     }
 
@@ -135,7 +135,6 @@ interface CategorySection {
 
     .value-text {
       font-size: 1rem;
-      color: rgba(0, 0, 0, 0.6);
     }
 
     .boolean-display {
@@ -153,18 +152,15 @@ interface CategorySection {
       font-size: 3rem;
       width: 3rem;
       height: 3rem;
-      color: rgba(0, 0, 0, 0.38);
       margin-bottom: 1rem;
     }
 
     .empty-content h3 {
       margin: 0 0 0.5rem 0;
-      color: rgba(0, 0, 0, 0.6);
     }
 
     .empty-content p {
       margin: 0;
-      color: rgba(0, 0, 0, 0.5);
     }
 
     mat-chip-set {
