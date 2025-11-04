@@ -65,80 +65,40 @@ export class PropertyService {
     );
   }
 
-  // Create property with attributes in one transaction
+  // Create property with attributes in one atomic transaction
   createPropertyWithAttributes(propertyData: PropertyWithAttributes): Observable<Property> {
-    const { attributeValues, ...propertyRequest } = propertyData;
+    // Normalize attribute values if present
+    const normalizedData = { ...propertyData };
+    if (normalizedData.attributeValues) {
+      normalizedData.attributeValues = Object.entries(normalizedData.attributeValues).reduce(
+        (acc, [attributeId, value]) => {
+          acc[parseInt(attributeId)] = this.normalizeValue(value);
+          return acc;
+        },
+        {} as { [key: number]: any }
+      );
+    }
 
-    return this.http.post<Property>(this.baseUrl, propertyRequest).pipe(
-      switchMap(createdProperty => {
-        if (attributeValues && Object.keys(attributeValues).length > 0) {
-          // Create attribute value requests
-          const valueRequests = Object.entries(attributeValues)
-            .filter(([_, value]) => value !== null && value !== undefined && value !== '')
-            .map(([attributeId, value]) =>
-              this.http.post<PropertyValue>(`${this.baseUrl}/${createdProperty.id}/values`, {
-                attributeId: parseInt(attributeId),
-                value: this.normalizeValue(value)
-              })
-            );
-
-          if (valueRequests.length > 0) {
-            return forkJoin(valueRequests).pipe(
-              map(() => createdProperty)
-            );
-          }
-        }
-        return [createdProperty];
-      }),
-      map(() => propertyData as any) // Return the created property
-    );
+    // Single atomic POST request to backend
+    return this.http.post<Property>(`${this.baseUrl}/with-attributes`, normalizedData);
   }
 
-  // Update property with attributes
+  // Update property with attributes in one atomic transaction
   updatePropertyWithAttributes(id: number, propertyData: PropertyWithAttributes): Observable<Property> {
-    const { attributeValues, ...propertyRequest } = propertyData;
+    // Normalize attribute values if present
+    const normalizedData = { ...propertyData };
+    if (normalizedData.attributeValues) {
+      normalizedData.attributeValues = Object.entries(normalizedData.attributeValues).reduce(
+        (acc, [attributeId, value]) => {
+          acc[parseInt(attributeId)] = this.normalizeValue(value);
+          return acc;
+        },
+        {} as { [key: number]: any }
+      );
+    }
 
-    return this.http.put<Property>(`${this.baseUrl}/${id}`, propertyRequest).pipe(
-      switchMap(updatedProperty => {
-        if (attributeValues) {
-          // First, get existing values to know what to delete
-          return this.http.get<PropertyValue[]>(`${this.baseUrl}/${id}/values`).pipe(
-            switchMap(existingValues => {
-              const requests: Observable<any>[] = [];
-
-              // Delete existing values that are not in the new data
-              const newAttributeIds = Object.keys(attributeValues).map(id => parseInt(id));
-              existingValues.forEach(existing => {
-                if (!newAttributeIds.includes(existing.attributeId)) {
-                  requests.push(
-                    this.http.delete(`${this.baseUrl}/${id}/values/${existing.attributeId}`)
-                  );
-                }
-              });
-
-              // Set new/updated values
-              Object.entries(attributeValues).forEach(([attributeId, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
-                  requests.push(
-                    this.http.post<PropertyValue>(`${this.baseUrl}/${id}/values`, {
-                      attributeId: parseInt(attributeId),
-                      value: this.normalizeValue(value)
-                    })
-                  );
-                }
-              });
-
-              if (requests.length > 0) {
-                return forkJoin(requests).pipe(map(() => updatedProperty));
-              }
-              return [updatedProperty];
-            }),
-            map(() => updatedProperty)
-          );
-        }
-        return [updatedProperty];
-      })
-    );
+    // Single atomic PUT request to backend
+    return this.http.put<Property>(`${this.baseUrl}/${id}/with-attributes`, normalizedData);
   }
 
   // Helper method to normalize values for storage

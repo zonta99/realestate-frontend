@@ -111,15 +111,15 @@ export const propertyReducer = createReducer(
     error
   })),
 
-  // Create Property
-  on(PropertyActions.createProperty, (state) => ({
+  // Create Property with Attributes (Batch Create)
+  on(PropertyActions.createPropertyWithAttributes, (state) => ({
     ...state,
     creating: true,
     error: null,
-    lastOperation: 'createProperty'
+    lastOperation: 'createPropertyWithAttributes'
   })),
 
-  on(PropertyActions.createPropertySuccess, (state, { property }) => ({
+  on(PropertyActions.createPropertyWithAttributesSuccess, (state, { property }) => ({
     ...state,
     properties: [property, ...state.properties],
     selectedProperty: property,
@@ -128,21 +128,21 @@ export const propertyReducer = createReducer(
     totalElements: state.totalElements + 1
   })),
 
-  on(PropertyActions.createPropertyFailure, (state, { error }) => ({
+  on(PropertyActions.createPropertyWithAttributesFailure, (state, { error }) => ({
     ...state,
     creating: false,
     error
   })),
 
-  // Update Property
-  on(PropertyActions.updateProperty, (state) => ({
+  // Update Property with Attributes (Batch Update)
+  on(PropertyActions.updatePropertyWithAttributes, (state) => ({
     ...state,
     updating: true,
     error: null,
-    lastOperation: 'updateProperty'
+    lastOperation: 'updatePropertyWithAttributes'
   })),
 
-  on(PropertyActions.updatePropertySuccess, (state, { property }) => ({
+  on(PropertyActions.updatePropertyWithAttributesSuccess, (state, { property }) => ({
     ...state,
     properties: state.properties.map(p => p.id === property.id ? property : p),
     selectedProperty: state.selectedProperty?.id === property.id ? property : state.selectedProperty,
@@ -150,7 +150,7 @@ export const propertyReducer = createReducer(
     error: null
   })),
 
-  on(PropertyActions.updatePropertyFailure, (state, { error }) => ({
+  on(PropertyActions.updatePropertyWithAttributesFailure, (state, { error }) => ({
     ...state,
     updating: false,
     error
@@ -205,51 +205,6 @@ export const propertyReducer = createReducer(
     ...state,
     loading: false,
     error
-  })),
-
-  // Property Values Management
-  on(PropertyActions.loadPropertyValues, (state) => ({
-    ...state,
-    loadingValues: true,
-    error: null,
-    lastOperation: 'loadPropertyValues'
-  })),
-
-  on(PropertyActions.loadPropertyValuesSuccess, (state, { propertyId, values }) => ({
-    ...state,
-    propertyValues: {
-      ...state.propertyValues,
-      [propertyId]: values
-    },
-    loadingValues: false,
-    error: null
-  })),
-
-  on(PropertyActions.loadPropertyValuesFailure, (state, { error }) => ({
-    ...state,
-    loadingValues: false,
-    error
-  })),
-
-  on(PropertyActions.setPropertyValueSuccess, (state, { value }) => ({
-    ...state,
-    propertyValues: {
-      ...state.propertyValues,
-      [value.propertyId]: [
-        ...(state.propertyValues[value.propertyId] || []).filter(v => v.attributeId !== value.attributeId),
-        value
-      ]
-    },
-    error: null
-  })),
-
-  on(PropertyActions.deletePropertyValueSuccess, (state, { propertyId, attributeId }) => ({
-    ...state,
-    propertyValues: {
-      ...state.propertyValues,
-      [propertyId]: (state.propertyValues[propertyId] || []).filter(v => v.attributeId !== attributeId)
-    },
-    error: null
   })),
 
   // Property Sharing Management

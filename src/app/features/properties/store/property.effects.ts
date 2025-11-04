@@ -43,27 +43,27 @@ export class PropertyEffects {
     )
   );
 
-  // Create Property Effect - Keep using basic create for backwards compatibility
-  createProperty$ = createEffect(() =>
+  // Create Property with Attributes Effect - Atomic batch create
+  createPropertyWithAttributes$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(PropertyActions.createProperty),
-      switchMap(({ property }) =>
-        this.propertyService.createProperty(property).pipe(
-          map(createdProperty => PropertyActions.createPropertySuccess({ property: createdProperty })),
-          catchError(error => of(PropertyActions.createPropertyFailure({ error })))
+      ofType(PropertyActions.createPropertyWithAttributes),
+      switchMap(({ propertyData }) =>
+        this.propertyService.createPropertyWithAttributes(propertyData).pipe(
+          map(createdProperty => PropertyActions.createPropertyWithAttributesSuccess({ property: createdProperty })),
+          catchError(error => of(PropertyActions.createPropertyWithAttributesFailure({ error })))
         )
       )
     )
   );
 
-  // Update Property Effect - Keep using basic update for backwards compatibility
-  updateProperty$ = createEffect(() =>
+  // Update Property with Attributes Effect - Atomic batch update
+  updatePropertyWithAttributes$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(PropertyActions.updateProperty),
-      switchMap(({ id, property }) =>
-        this.propertyService.updateProperty(id, property).pipe(
-          map(updatedProperty => PropertyActions.updatePropertySuccess({ property: updatedProperty })),
-          catchError(error => of(PropertyActions.updatePropertyFailure({ error })))
+      ofType(PropertyActions.updatePropertyWithAttributes),
+      switchMap(({ id, propertyData }) =>
+        this.propertyService.updatePropertyWithAttributes(id, propertyData).pipe(
+          map(updatedProperty => PropertyActions.updatePropertyWithAttributesSuccess({ property: updatedProperty })),
+          catchError(error => of(PropertyActions.updatePropertyWithAttributesFailure({ error })))
         )
       )
     )
@@ -90,49 +90,6 @@ export class PropertyEffects {
         this.propertyService.searchProperties(params).pipe(
           map(properties => PropertyActions.searchPropertiesSuccess({ properties })),
           catchError(error => of(PropertyActions.searchPropertiesFailure({ error })))
-        )
-      )
-    )
-  );
-
-  // Load Property Values Effect
-  loadPropertyValues$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.loadPropertyValues),
-      switchMap(({ propertyId }) =>
-        this.propertyService.getPropertyValues(propertyId).pipe(
-          map(values => PropertyActions.loadPropertyValuesSuccess({ propertyId, values })),
-          catchError(error => of(PropertyActions.loadPropertyValuesFailure({ error })))
-        )
-      )
-    )
-  );
-
-  // Set Property Value Effect - Updated to match new service signature
-  setPropertyValue$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.setPropertyValue),
-      switchMap(({ propertyId, valueRequest }) =>
-        this.propertyService.setPropertyValue(propertyId, valueRequest.attributeId, valueRequest.value).pipe(
-          map(value => PropertyActions.setPropertyValueSuccess({ value })),
-          catchError(error => of(PropertyActions.setPropertyValueFailure({ error })))
-        )
-      )
-    )
-  );
-
-  // Delete Property Value Effect
-  deletePropertyValue$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(PropertyActions.deletePropertyValue),
-      switchMap(({ propertyId, attributeId }) =>
-        this.propertyService.deletePropertyValue(propertyId, attributeId).pipe(
-          map(response => PropertyActions.deletePropertyValueSuccess({
-            propertyId,
-            attributeId,
-            message: response.message
-          })),
-          catchError(error => of(PropertyActions.deletePropertyValueFailure({ error })))
         )
       )
     )
@@ -185,9 +142,9 @@ export class PropertyEffects {
   );
 
   // Success Notifications
-  createPropertySuccess$ = createEffect(() =>
+  createPropertyWithAttributesSuccess$ = createEffect(() =>
       this.actions$.pipe(
-        ofType(PropertyActions.createPropertySuccess),
+        ofType(PropertyActions.createPropertyWithAttributesSuccess),
         tap(({ property }) => {
           this.snackBar.open(`Property "${property.title}" created successfully!`, 'Close', {
             duration: 3000,
@@ -200,14 +157,16 @@ export class PropertyEffects {
     { dispatch: false }
   );
 
-  updatePropertySuccess$ = createEffect(() =>
+  updatePropertyWithAttributesSuccess$ = createEffect(() =>
       this.actions$.pipe(
-        ofType(PropertyActions.updatePropertySuccess),
+        ofType(PropertyActions.updatePropertyWithAttributesSuccess),
         tap(({ property }) => {
           this.snackBar.open(`Property "${property.title}" updated successfully!`, 'Close', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
+          // Navigate to property details
+          this.router.navigate(['/properties', property.id]);
         })
       ),
     { dispatch: false }
@@ -245,13 +204,10 @@ export class PropertyEffects {
         ofType(
           PropertyActions.loadPropertiesFailure,
           PropertyActions.loadPropertyFailure,
-          PropertyActions.createPropertyFailure,
-          PropertyActions.updatePropertyFailure,
+          PropertyActions.createPropertyWithAttributesFailure,
+          PropertyActions.updatePropertyWithAttributesFailure,
           PropertyActions.deletePropertyFailure,
           PropertyActions.searchPropertiesFailure,
-          PropertyActions.loadPropertyValuesFailure,
-          PropertyActions.setPropertyValueFailure,
-          PropertyActions.deletePropertyValueFailure,
           PropertyActions.loadPropertySharingFailure,
           PropertyActions.sharePropertyFailure,
           PropertyActions.unsharePropertyFailure

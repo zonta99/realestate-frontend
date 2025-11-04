@@ -18,6 +18,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatStepperModule } from '@angular/material/stepper';
 import { Subject, takeUntil } from 'rxjs';
 import type { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
 import { PropertyService, PropertyWithAttributes, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { ChangeTrackingService } from '../../services/change-tracking.service';
@@ -28,6 +30,8 @@ import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../..
 import { ErrorLoggingService } from '../../../../core/services/error-logging.service';
 import { AttributeValueNormalizer } from '../../../../shared/utils/attribute-value-normalizer';
 import { AddressAutocompleteComponent } from '../address-autocomplete/address-autocomplete.component';
+import { PropertyActions } from '../../store/property.actions';
+import { selectUpdating } from '../../store/property.selectors';
 
 @Component({
   selector: 'app-property-form',
@@ -58,6 +62,8 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private store = inject(Store);
+  private actions$ = inject(Actions);
   private propertyService = inject(PropertyService);
   private attributeService = inject(AttributeService);
   changeTrackingService = inject(ChangeTrackingService);
@@ -334,60 +340,88 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
         attributeValues: attributeValuesObj
       };
 
-      const operation = this.isEditMode()
-        ? this.propertyService.updatePropertyWithAttributes(this.propertyId()!, propertyData)
-        : this.propertyService.createPropertyWithAttributes(propertyData);
+      if (this.isEditMode()) {
+        // Dispatch NgRx action for batch update with attributes
+        this.store.dispatch(PropertyActions.updatePropertyWithAttributes({
+          id: this.propertyId()!,
+          propertyData
+        }));
 
-      operation.pipe(takeUntil(this.destroy$)).subscribe({
-        next: (property) => {
-          // Accept changes after a successful save
-          this.changeTrackingService.acceptChanges();
-
-          const action = this.isEditMode() ? 'updated' : 'created';
-          this.snackBar.open(`Property "${property.title}" ${action} successfully!`, 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-
-          this.errorLogger.info(`Property ${action}`, {
-            propertyId: property.id,
-            title: property.title
-          });
-
-          // Navigate to property details or list
-          if (this.isEditMode()) {
-            this.router.navigate(['/properties', this.propertyId()]);
-          } else {
-            // Check if property.id exists before navigation
-            if (property.id) {
-              this.router.navigate(['/properties', property.id]);
-            } else {
-              // Fallback to list if id is undefined
-              this.router.navigate(['/properties']);
-            }
-          }
-        },
-        error: (error) => {
-          const action = this.isEditMode() ? 'update' : 'create';
-          this.errorLogger.error(`Failed to ${action} property`, error, {
-            component: 'PropertyFormComponent',
-            method: 'onSubmit',
-            formData: formValue
-          });
-
-          this.error.set(`Failed to ${action} property. Please try again.`);
+        // Listen for success/failure actions
+        this.actions$.pipe(
+          ofType(
+            PropertyActions.updatePropertyWithAttributesSuccess,
+            PropertyActions.updatePropertyWithAttributesFailure
+          ),
+          takeUntil(this.destroy$)
+        ).subscribe(action => {
           this.saving.set(false);
-
-          // Re-enable form controls after error
           this.basicInfoForm.enable();
           this.propertyDetailsForm.enable();
 
-          this.snackBar.open(`Error: Failed to ${action} property`, 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+          if (action.type === PropertyActions.updatePropertyWithAttributesSuccess.type) {
+            // Accept changes after successful save
+            this.changeTrackingService.acceptChanges();
+
+            this.errorLogger.info('Property updated', {
+              propertyId: action.property.id,
+              title: action.property.title
+            });
+
+            // Navigation is handled by the effect
+          } else {
+            // Failure case
+            const error = (action as any).error;
+            this.errorLogger.error('Failed to update property', error, {
+              component: 'PropertyFormComponent',
+              method: 'onSubmit',
+              formData: formValue
+            });
+
+            this.error.set('Failed to update property. Please try again.');
+          }
+        });
+      } else {
+        // Dispatch NgRx action for batch create with attributes
+        this.store.dispatch(PropertyActions.createPropertyWithAttributes({
+          propertyData
+        }));
+
+        // Listen for success/failure actions
+        this.actions$.pipe(
+          ofType(
+            PropertyActions.createPropertyWithAttributesSuccess,
+            PropertyActions.createPropertyWithAttributesFailure
+          ),
+          takeUntil(this.destroy$)
+        ).subscribe(action => {
+          this.saving.set(false);
+          this.basicInfoForm.enable();
+          this.propertyDetailsForm.enable();
+
+          if (action.type === PropertyActions.createPropertyWithAttributesSuccess.type) {
+            // Accept changes after successful save
+            this.changeTrackingService.acceptChanges();
+
+            this.errorLogger.info('Property created', {
+              propertyId: action.property.id,
+              title: action.property.title
+            });
+
+            // Navigation is handled by the effect
+          } else {
+            // Failure case
+            const error = (action as any).error;
+            this.errorLogger.error('Failed to create property', error, {
+              component: 'PropertyFormComponent',
+              method: 'onSubmit',
+              formData: formValue
+            });
+
+            this.error.set('Failed to create property. Please try again.');
+          }
+        });
+      }
     }
   }
 
@@ -405,10 +439,53 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   /**
    * Handle address selection from autocomplete
    */
-  onAddressSelected(event: {lat: number; lng: number; address: string}): void {
+  onAddressSelected(event: {
+    lat: number;
+    lng: number;
+    address: string;
+    addressComponents?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+      country?: string;
+    }
+  }): void {
     this.selectedAddress.set(event.address);
     this.selectedLat.set(event.lat);
     this.selectedLng.set(event.lng);
+
+    // Auto-populate LOCATION attributes if address components available
+    if (event.addressComponents) {
+      const locationAttrs = this.categorizedAttributes().get(PropertyCategory.LOCATION) || [];
+      const components = event.addressComponents;
+
+      // Map of common attribute names to address component values
+      const attributeMapping: Record<string, string | undefined> = {
+        'street': components.street,
+        'address': components.street,
+        'city': components.city,
+        'state': components.state,
+        'province': components.state,
+        'postal code': components.postalCode,
+        'zip': components.postalCode,
+        'zip code': components.postalCode,
+        'country': components.country
+      };
+
+      // Auto-populate matching attributes
+      for (const attr of locationAttrs) {
+        const attrNameLower = attr.name.toLowerCase();
+        const value = attributeMapping[attrNameLower];
+
+        if (value) {
+          this.onAttributeValueChange({
+            attributeId: attr.id,
+            value: value
+          });
+        }
+      }
+    }
   }
 
   goBack(): void {

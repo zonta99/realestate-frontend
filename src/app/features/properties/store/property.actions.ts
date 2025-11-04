@@ -2,16 +2,13 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import {
   Property,
-  CreatePropertyRequest,
-  UpdatePropertyRequest,
   PropertyPageResponse,
   PropertyListParams,
   PropertySearchParams,
-  PropertyValue,
-  CreatePropertyValueRequest,
   PropertySharing,
   SharePropertyRequest,
 } from '../models/property.interface';
+import { PropertyWithAttributes } from '../services/property.service';
 
 export const PropertyActions = createActionGroup({
   source: 'Property',
@@ -26,15 +23,15 @@ export const PropertyActions = createActionGroup({
     'Load Property Success': props<{ property: Property }>(),
     'Load Property Failure': props<{ error: any }>(),
 
-    // Create Property
-    'Create Property': props<{ property: CreatePropertyRequest }>(),
-    'Create Property Success': props<{ property: Property }>(),
-    'Create Property Failure': props<{ error: any }>(),
+    // Create Property with Attributes (Batch Create)
+    'Create Property With Attributes': props<{ propertyData: PropertyWithAttributes }>(),
+    'Create Property With Attributes Success': props<{ property: Property }>(),
+    'Create Property With Attributes Failure': props<{ error: any }>(),
 
-    // Update Property
-    'Update Property': props<{ id: number; property: UpdatePropertyRequest }>(),
-    'Update Property Success': props<{ property: Property }>(),
-    'Update Property Failure': props<{ error: any }>(),
+    // Update Property with Attributes (Batch Update)
+    'Update Property With Attributes': props<{ id: number; propertyData: PropertyWithAttributes }>(),
+    'Update Property With Attributes Success': props<{ property: Property }>(),
+    'Update Property With Attributes Failure': props<{ error: any }>(),
 
     // Delete Property
     'Delete Property': props<{ id: number }>(),
@@ -45,19 +42,6 @@ export const PropertyActions = createActionGroup({
     'Search Properties': props<{ params: PropertySearchParams }>(),
     'Search Properties Success': props<{ properties: Property[] }>(),
     'Search Properties Failure': props<{ error: any }>(),
-
-    // Property Values Management
-    'Load Property Values': props<{ propertyId: number }>(),
-    'Load Property Values Success': props<{ propertyId: number; values: PropertyValue[] }>(),
-    'Load Property Values Failure': props<{ error: any }>(),
-
-    'Set Property Value': props<{ propertyId: number; valueRequest: CreatePropertyValueRequest }>(),
-    'Set Property Value Success': props<{ value: PropertyValue }>(),
-    'Set Property Value Failure': props<{ error: any }>(),
-
-    'Delete Property Value': props<{ propertyId: number; attributeId: number }>(),
-    'Delete Property Value Success': props<{ propertyId: number; attributeId: number; message: string }>(),
-    'Delete Property Value Failure': props<{ error: any }>(),
 
     // Property Sharing Management
     'Load Property Sharing': props<{ propertyId: number }>(),
