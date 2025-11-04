@@ -142,10 +142,11 @@ The properties feature demonstrates the full architecture pattern:
 3. **Components**:
    - `PropertyListComponent`: Paginated property listing
    - `PropertyDetailComponent`: View property details
-   - `PropertyFormComponent`: Create/edit properties
+   - `PropertyFormComponent`: Create/edit properties with stepper navigation
    - `PropertyValuesDisplayComponent`: Display property attributes
    - `AttributeFormFieldComponent`: Dynamic form field based on attribute type
    - `AttributeDisplayComponent`: Display attribute values
+   - `AddressAutocompleteComponent`: Google Maps address autocomplete with dropdown
 
 ### Environment Configuration
 
@@ -156,6 +157,34 @@ The properties feature demonstrates the full architecture pattern:
 - **Production**: `src/environments/environment.prod.ts`
 
 Access via: `import { environment } from 'environments/environment'`
+
+### Google Maps Integration
+
+The application uses Google Maps Places API (New) for address autocomplete functionality:
+
+**Configuration** (`src/environments/environment.ts`):
+```typescript
+googleMaps: {
+  apiKey: 'YOUR_API_KEY',
+  defaultZoom: 15,
+  defaultCenter: { lat: 40.7128, lng: -74.0060 }
+}
+```
+
+**API Setup**:
+- Loaded in `src/index.html` with `places` library
+- Requires **Places API (New)** enabled in Google Cloud Console
+- Uses new `AutocompleteService` + `PlacesService` (not deprecated `Autocomplete` widget)
+
+**AddressAutocompleteComponent** (`src/app/features/properties/components/address-autocomplete/`):
+- Standalone Material autocomplete with dropdown predictions
+- Session token management for billing optimization
+- 300ms debounce to reduce API calls
+- Displays structured addresses (main text + secondary text)
+- Emits `{lat, lng, address}` on selection
+- Usage: `<app-address-autocomplete [initialValue]="address" (addressSelected)="onAddressSelect($event)">`
+
+**Important**: Always use the new Places API services, not the deprecated `google.maps.places.Autocomplete` widget.
 
 ### Shared Services & Utilities
 

@@ -7,5 +7,10 @@ export const environment = {
   features: {
     enableDevTools: false,
     enableLogging: false,
+  },
+  googleMaps: {
+    apiKey: 'YOUR_PRODUCTION_API_KEY',
+    defaultZoom: 15,
+    defaultCenter: { lat: 40.7128, lng: -74.0060 }
   }
 };
