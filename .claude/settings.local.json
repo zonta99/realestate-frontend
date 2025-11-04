@@ -29,7 +29,14 @@
       "Bash(powershell -Command \"Stop-Process -Id 21684 -Force\")",
       "WebFetch(domain:dev.to)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Skill(research-methodology)",
+      "WebFetch(domain:next.material.angular.dev)",
+      "WebFetch(domain:konstantin-denerz.com)",
+      "Skill(planning-methodology)",
+      "SlashCommand(/implement)",
+      "Bash(dir:*)",
+      "Bash(npm run start:*)"
     ],
     "deny": [],
     "ask": []
