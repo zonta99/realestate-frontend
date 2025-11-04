@@ -5,6 +5,31 @@
   flex: 1 1 auto;
 }
 
+/* Keyboard shortcuts hint */
+.keyboard-hints {
+  display: flex;
+  gap: var(--mat-sys-spacing-medium, 16px);
+  align-items: center;
+  margin-left: var(--mat-sys-spacing-medium, 16px);
+
+  @media (max-width: 768px) {
+    display: none; // Hide on mobile
+  }
+}
+
+.keyboard-hint {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  opacity: 0.8;
+  white-space: nowrap;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .content-container {
   padding: var(--mat-sys-spacing-large, 24px);
   display: flex;
@@ -66,6 +91,30 @@
   }
 }
 
+/* Accessibility: Focus indicators */
+button:focus-visible,
+a:focus-visible,
+mat-expansion-panel-header:focus-visible {
+  outline: 2px solid var(--mat-sys-color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Ensure sufficient color contrast for keyboard hints */
+.keyboard-hint {
+  color: var(--mat-sys-color-on-primary);
+}
+
+/* Loading state accessibility */
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mat-sys-spacing-medium, 16px);
+  padding: var(--mat-sys-spacing-extra-large, 32px);
+}
+
 /* Responsive design using Material Design breakpoints */
 @media (max-width: 968px) {
   .form-layout {
@@ -81,5 +130,141 @@
 
   .form-layout {
     gap: var(--mat-sys-spacing-medium, 16px);
+  }
+}
+
+// Stepper Container
+.stepper-container {
+  max-width: 900px;
+  width: 100%;
+  background: var(--mat-sys-color-surface);
+  border-radius: 8px;
+  box-shadow: var(--mat-sys-elevation-level2);
+}
+
+.property-stepper {
+  background: transparent;
+}
+
+// Step Progress Indicator
+.step-progress {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin-left: var(--mat-sys-spacing-medium, 16px);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// Step Content
+.step-content {
+  padding: var(--mat-sys-spacing-large, 24px);
+  min-height: 400px;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: var(--mat-sys-spacing-small, 8px);
+  }
+
+  p {
+    margin-bottom: var(--mat-sys-spacing-large, 24px);
+    color: var(--mat-sys-color-on-surface-variant);
+  }
+}
+
+.step-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mat-sys-spacing-large, 24px);
+}
+
+.step-icon {
+  margin-right: var(--mat-sys-spacing-small, 8px);
+}
+
+// Step Actions
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--mat-sys-spacing-medium, 16px);
+  margin-top: var(--mat-sys-spacing-large, 24px);
+  padding-top: var(--mat-sys-spacing-medium, 16px);
+  border-top: 1px solid var(--mat-sys-color-outline-variant);
+
+  button {
+    min-width: 100px;
+  }
+}
+
+// Review Section
+.review-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mat-sys-spacing-medium, 16px);
+  margin-bottom: var(--mat-sys-spacing-large, 24px);
+}
+
+.review-section {
+  mat-card-header {
+    margin-bottom: var(--mat-sys-spacing-medium, 16px);
+  }
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mat-sys-spacing-small, 8px);
+  margin: 0;
+
+  .review-item {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: var(--mat-sys-spacing-medium, 16px);
+    padding: var(--mat-sys-spacing-small, 8px) 0;
+    border-bottom: 1px solid var(--mat-sys-color-outline-variant);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    dt {
+      font-weight: 500;
+      color: var(--mat-sys-color-on-surface-variant);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--mat-sys-color-on-surface);
+      word-break: break-word;
+    }
+  }
+}
+
+// Responsive adjustments for stepper
+@media (max-width: 600px) {
+  .step-content {
+    padding: var(--mat-sys-spacing-medium, 16px);
+  }
+
+  .review-list .review-item {
+    grid-template-columns: 1fr;
+    gap: var(--mat-sys-spacing-small, 8px);
+
+    dt {
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+  }
+
+  .step-actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
   }
 }

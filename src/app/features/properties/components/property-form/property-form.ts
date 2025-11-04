@@ -1,5 +1,5 @@
 // src/app/features/properties/components/property-form/property-form.ts
-import { Component, ChangeDetectionStrategy, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, OnDestroy, signal, computed, HostListener, ViewChild } from '@angular/core';
 import { CommonModule, KeyValue } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -15,7 +15,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatStepperModule } from '@angular/material/stepper';
 import { Subject, takeUntil } from 'rxjs';
+import type { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { PropertyService, PropertyWithAttributes, PropertyFullData } from '../../services/property.service';
 import { AttributeService } from '../../../attributes/services/attribute.service';
 import { ChangeTrackingService } from '../../services/change-tracking.service';
@@ -23,6 +25,8 @@ import { AttributeFormFieldComponent } from '../../../attributes/components/attr
 import { PropertyAttribute, PropertyCategory, PropertyStatus } from '../../models/property.interface';
 import { MatDialog } from '@angular/material/dialog';
 import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../../../../shared/components/unsaved-changes-dialog/unsaved-changes-dialog';
+import { ErrorLoggingService } from '../../../../core/services/error-logging.service';
+import { AttributeValueNormalizer } from '../../../../shared/utils/attribute-value-normalizer';
 
 @Component({
   selector: 'app-property-form',
@@ -44,6 +48,7 @@ import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../..
     MatToolbarModule,
     MatDividerModule,
     MatExpansionModule,
+    MatStepperModule,
     AttributeFormFieldComponent
   ]
 })
@@ -56,6 +61,7 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   changeTrackingService = inject(ChangeTrackingService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private errorLogger = inject(ErrorLoggingService);
   private destroy$ = new Subject<void>();
 
   // Signals for reactive state
@@ -85,8 +91,14 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   // Page title
   pageTitle = computed(() => this.isEditMode() ? 'Edit Property' : 'Add New Property');
 
-  // Reactive form
-  propertyForm = this.fb.group({
+  // Stepper state
+  currentStep = signal(0);
+  totalSteps = 7;
+
+  @ViewChild('stepper', { static: false }) stepper?: any;
+
+  // Step 1: Basic Information
+  basicInfoForm = this.fb.group({
     title: ['', [
       Validators.required,
       Validators.minLength(3),
@@ -101,7 +113,11 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
       Validators.required,
       Validators.min(1),
       Validators.max(50000000)
-    ]],
+    ]]
+  });
+
+  // Step 2: Property Details (status + BASIC attributes)
+  propertyDetailsForm = this.fb.group({
     status: [PropertyStatus.ACTIVE, [Validators.required]]
   });
 
@@ -113,6 +129,48 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Handle stepper step change
+   */
+  onStepChange(event: StepperSelectionEvent): void {
+    this.currentStep.set(event.selectedIndex);
+  }
+
+  /**
+   * Get attributes by category
+   */
+  getAttributesByCategory(category: PropertyCategory): PropertyAttribute[] {
+    return this.attributes().filter(attr => attr.category === category);
+  }
+
+  /**
+   * Keyboard shortcut: Ctrl+S to save
+   */
+  @HostListener('window:keydown.control.s', ['$event'])
+  @HostListener('window:keydown.meta.s', ['$event'])
+  handleSaveShortcut(event: Event): void {
+    event.preventDefault();
+    const allFormsValid = this.basicInfoForm.valid && this.propertyDetailsForm.valid;
+    if (allFormsValid && !this.saving()) {
+      this.onSubmit();
+    } else if (!allFormsValid) {
+      // Show validation error
+      this.snackBar.open('Please complete all required fields', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    }
+  }
+
+  /**
+   * Keyboard shortcut: Esc to cancel
+   */
+  @HostListener('window:keydown.escape', ['$event'])
+  handleCancelShortcut(event: Event): void {
+    event.preventDefault();
+    this.goBack();
   }
 
   private detectMode(): void {
@@ -142,7 +200,10 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Failed to load attributes:', error);
+          this.errorLogger.error('Failed to load attributes', error, {
+            component: 'PropertyFormComponent',
+            method: 'loadData'
+          });
           this.error.set('Failed to load form data. Please try again.');
           this.loading.set(false);
         }
@@ -159,7 +220,11 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Failed to load property data:', error);
+          this.errorLogger.error('Failed to load property data', error, {
+            component: 'PropertyFormComponent',
+            method: 'loadPropertyData',
+            propertyId
+          });
           this.error.set('Failed to load property data. Please try again.');
           this.loading.set(false);
         }
@@ -167,11 +232,15 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   }
 
   private populateForm(data: PropertyFullData): void {
-    // Set basic property form values
-    this.propertyForm.patchValue({
+    // Set basic info form values
+    this.basicInfoForm.patchValue({
       title: data.property.title,
       description: data.property.description,
-      price: data.property.price,
+      price: data.property.price
+    });
+
+    // Set property details form values
+    this.propertyDetailsForm.patchValue({
       status: data.property.status
     });
 
@@ -215,48 +284,35 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
     const attribute = this.attributes().find(attr => attr.id === event.attributeId);
     const dataType = attribute?.dataType;
 
+    // Use AttributeValueNormalizer utility for consistent normalization
+    const normalizedValue = AttributeValueNormalizer.normalize(event.value, dataType);
+
     // Update change tracking service with data type information
     this.changeTrackingService.updateCurrentValue(event.attributeId, event.value, dataType);
 
-    // Update current values for display - use the same logic as change tracking
+    // Update current values for display
     const currentValues = new Map(this.attributeValues());
-
-    let normalizedValue = event.value;
-    if (dataType) {
-      switch (dataType) {
-        case 'TEXT':
-        case 'SINGLE_SELECT':
-          normalizedValue = (event.value === '') ? null : event.value;
-          break;
-        case 'BOOLEAN':
-          normalizedValue = (event.value === undefined) ? null : event.value;
-          break;
-        case 'NUMBER':
-          normalizedValue = (event.value === '' || (typeof event.value === 'string' && event.value.trim() === '')) ? null : event.value;
-          break;
-        case 'MULTI_SELECT':
-          normalizedValue = (event.value === undefined) ? null : event.value;
-          break;
-        case 'DATE':
-          normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
-          break;
-        default:
-          normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
-      }
-    } else {
-      normalizedValue = (event.value === null || event.value === undefined || event.value === '') ? null : event.value;
-    }
-
     currentValues.set(event.attributeId, normalizedValue);
     this.attributeValues.set(currentValues);
   }
 
   onSubmit(): void {
-    if (this.propertyForm.valid && !this.saving()) {
+    // Validate all forms before submission
+    const allFormsValid = this.basicInfoForm.valid && this.propertyDetailsForm.valid;
+
+    if (allFormsValid && !this.saving()) {
       this.saving.set(true);
       this.error.set(null);
 
-      const formValue = this.propertyForm.getRawValue();
+      // Disable all form controls during save
+      this.basicInfoForm.disable();
+      this.propertyDetailsForm.disable();
+
+      // Combine form values
+      const basicInfoValue = this.basicInfoForm.getRawValue();
+      const propertyDetailsValue = this.propertyDetailsForm.getRawValue();
+
+      const formValue = { ...basicInfoValue, ...propertyDetailsValue };
 
       // Use only changed attribute values for update
       const attributeValuesObj = this.isEditMode()
@@ -286,18 +342,38 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
             panelClass: ['success-snackbar']
           });
 
+          this.errorLogger.info(`Property ${action}`, {
+            propertyId: property.id,
+            title: property.title
+          });
+
           // Navigate to property details or list
           if (this.isEditMode()) {
             this.router.navigate(['/properties', this.propertyId()]);
           } else {
-            this.router.navigate(['/properties', property.id]);
+            // Check if property.id exists before navigation
+            if (property.id) {
+              this.router.navigate(['/properties', property.id]);
+            } else {
+              // Fallback to list if id is undefined
+              this.router.navigate(['/properties']);
+            }
           }
         },
         error: (error) => {
-          console.error('Failed to save property:', error);
           const action = this.isEditMode() ? 'update' : 'create';
+          this.errorLogger.error(`Failed to ${action} property`, error, {
+            component: 'PropertyFormComponent',
+            method: 'onSubmit',
+            formData: formValue
+          });
+
           this.error.set(`Failed to ${action} property. Please try again.`);
           this.saving.set(false);
+
+          // Re-enable form controls after error
+          this.basicInfoForm.enable();
+          this.propertyDetailsForm.enable();
 
           this.snackBar.open(`Error: Failed to ${action} property`, 'Close', {
             duration: 5000,
@@ -309,9 +385,14 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
-    this.propertyForm.reset();
+    this.basicInfoForm.reset();
+    this.propertyDetailsForm.reset({ status: PropertyStatus.ACTIVE });
     this.attributeValues.set(new Map());
     this.error.set(null);
+    if (this.stepper) {
+      this.stepper.reset();
+      this.currentStep.set(0);
+    }
   }
 
   goBack(): void {

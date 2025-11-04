@@ -231,6 +231,11 @@ export class AttributeFormFieldComponent implements OnInit, OnDestroy, OnChanges
 
   // Boolean value handling - cycle through states
   cycleBooleanValue() {
+    // Don't cycle if the form control is disabled
+    if (this.formControl.disabled) {
+      return;
+    }
+
     const currentValue = this.formControl.value;
     let nextValue: boolean | null;
 

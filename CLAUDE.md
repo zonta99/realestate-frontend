@@ -157,6 +157,24 @@ The properties feature demonstrates the full architecture pattern:
 
 Access via: `import { environment } from 'environments/environment'`
 
+### Shared Services & Utilities
+
+**Core Services** (`src/app/core/services/`):
+- `ErrorLoggingService`: Centralized error logging (replaces console.error in production)
+  - Use `errorLog.error(message, error, context)` instead of `console.error`
+  - Integration point for external error tracking (Sentry, Rollbar)
+
+**Shared Services** (`src/app/shared/services/`):
+- `FormAutoSaveService`: Auto-saves form drafts to localStorage
+  - 30-second auto-save interval
+  - 24-hour draft expiry
+  - Use for all complex forms to prevent data loss
+
+**Shared Utilities** (`src/app/shared/utils/`):
+- `AttributeValueNormalizer`: Handles attribute value normalization across all data types
+  - Use `normalize()`, `isValueEmpty()`, `areValuesEqual()` for consistent value handling
+  - Prevents duplicate normalization logic
+
 ## Testing
 
 - **Framework**: Jasmine + Karma
@@ -172,6 +190,9 @@ Access via: `import { environment } from 'environments/environment'`
 5. **Role Checking**: Always use `UserHelper` or `AuthFacadeService` for role-based logic
 6. **API Responses**: Backend returns `ApiResponse<T>` or paginated `Page<T>` responses
 7. **Change Tracking**: Use `ChangeTrackingService` pattern for forms with unsaved changes detection
+8. **Error Logging**: Use `ErrorLoggingService` instead of `console.error/log/warn` for production code
+9. **Form Auto-save**: Use `FormAutoSaveService` for complex forms to prevent data loss
+10. **Accessibility**: Add ARIA labels, keyboard shortcuts (Ctrl+S, Esc), and screen reader support to all forms
 
 ## Common Workflows
 

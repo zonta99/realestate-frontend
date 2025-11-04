@@ -1,230 +1,496 @@
 <!-- src/app/features/properties/components/property-form/property-form.html -->
-<div class="mat-app-background">
+<div class="mat-app-background" role="main">
   <!-- Header using Material Toolbar -->
-  <mat-toolbar color="primary" class="mat-elevation-2">
+  <mat-toolbar color="primary" class="mat-elevation-2" role="banner">
     <button
       mat-icon-button
       (click)="goBack()"
-      [disabled]="saving()">
+      aria-label="Go back to previous page"
+      title="Go back (Esc)">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span class="mat-headline-medium">{{ pageTitle() }}</span>
     <span class="spacer"></span>
+
+    <!-- Step Progress Indicator -->
+    <div class="step-progress" aria-label="Form progress indicator">
+      <span class="mat-body-medium">Step {{ currentStep() + 1 }} of {{ totalSteps }}</span>
+    </div>
+
+    <!-- Keyboard shortcuts hint -->
+    <div class="keyboard-hints" aria-label="Keyboard shortcuts available">
+      <span class="keyboard-hint" title="Press Ctrl+S to save">Ctrl+S: Save</span>
+      <span class="keyboard-hint" title="Press Esc to cancel">Esc: Cancel</span>
+    </div>
   </mat-toolbar>
 
   <!-- Content Container -->
   <div class="content-container">
     <!-- Loading State -->
     @if (loading()) {
-      <mat-card appearance="outlined" class="loading-card mat-elevation-2">
+      <mat-card appearance="outlined" class="loading-card mat-elevation-2" role="status" aria-live="polite">
         <mat-card-content class="loading-content">
-          <mat-progress-spinner diameter="50"></mat-progress-spinner>
+          <mat-progress-spinner diameter="50" aria-label="Loading form data"></mat-progress-spinner>
           <p class="mat-body-large">Loading form data...</p>
         </mat-card-content>
       </mat-card>
     } @else {
-      <div class="form-layout">
-        <!-- Main Form Card -->
-        <mat-card appearance="outlined" class="form-card mat-elevation-2">
-          <mat-card-header>
-            <div mat-card-avatar>
-              <mat-icon>{{ isEditMode() ? 'edit' : 'home' }}</mat-icon>
-            </div>
-            <mat-card-title class="mat-headline-small">Property Details</mat-card-title>
-            <mat-card-subtitle class="mat-body-medium">
-              {{ isEditMode() ? 'Update the property information' : 'Fill in the information to create a new property' }}
-            </mat-card-subtitle>
-          </mat-card-header>
+      <div class="stepper-container">
+        @if (saving()) {
+          <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
+        }
 
-          <form [formGroup]="propertyForm" (ngSubmit)="onSubmit()">
-            <mat-card-content>
-              @if (saving()) {
-                <mat-progress-bar mode="indeterminate" class="form-progress"></mat-progress-bar>
-              }
+        <!-- Multi-Step Stepper -->
+        <mat-stepper
+          linear
+          #stepper
+          (selectionChange)="onStepChange($event)"
+          [selectedIndex]="currentStep()"
+          class="property-stepper"
+          aria-label="Property creation wizard">
 
-              <div class="form-fields">
-                <!-- Title Field -->
-                <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>Property Title</mat-label>
-                  <input
-                    matInput
-                    formControlName="title"
-                    placeholder="Enter property title"
-                    [disabled]="saving()">
-                  <mat-icon matSuffix>title</mat-icon>
-                  @if (propertyForm.get('title')?.invalid && propertyForm.get('title')?.touched) {
-                    <mat-error>
-                      @if (propertyForm.get('title')?.hasError('required')) {
-                        Title is required
-                      }
-                      @if (propertyForm.get('title')?.hasError('minlength')) {
-                        Title must be at least 3 characters long
-                      }
-                      @if (propertyForm.get('title')?.hasError('maxlength')) {
-                        Title cannot exceed 200 characters
-                      }
-                    </mat-error>
-                  }
-                </mat-form-field>
+          <!-- Step 1: Basic Information -->
+          <mat-step [stepControl]="basicInfoForm" label="Basic Information" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">info</mat-icon>
+              <span>Basic Information</span>
+            </ng-template>
 
-                <!-- Description Field -->
-                <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>Description</mat-label>
-                  <textarea
-                    matInput
-                    formControlName="description"
-                    placeholder="Enter property description"
-                    rows="4"
-                    [disabled]="saving()">
-                  </textarea>
-                  <mat-icon matSuffix>description</mat-icon>
-                  @if (propertyForm.get('description')?.invalid && propertyForm.get('description')?.touched) {
-                    <mat-error>
-                      @if (propertyForm.get('description')?.hasError('required')) {
-                        Description is required
-                      }
-                      @if (propertyForm.get('description')?.hasError('minlength')) {
-                        Description must be at least 10 characters long
-                      }
-                      @if (propertyForm.get('description')?.hasError('maxlength')) {
-                        Description cannot exceed 1000 characters
-                      }
-                    </mat-error>
-                  }
-                </mat-form-field>
+            <div class="step-content">
+              <h3 class="mat-headline-small">Property Basics</h3>
+              <p class="mat-body-medium">Enter the essential property information</p>
 
-                <!-- Price Field -->
-                <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                  <mat-label>Price</mat-label>
-                  <input
-                    matInput
-                    type="number"
-                    formControlName="price"
-                    placeholder="0"
-                    [disabled]="saving()">
-                  <span matTextPrefix>$&nbsp;</span>
-                  <mat-icon matSuffix>attach_money</mat-icon>
-                  @if (propertyForm.get('price')?.invalid && propertyForm.get('price')?.touched) {
-                    <mat-error>
-                      @if (propertyForm.get('price')?.hasError('required')) {
-                        Price is required
-                      }
-                      @if (propertyForm.get('price')?.hasError('min')) {
-                        Price must be greater than 0
-                      }
-                      @if (propertyForm.get('price')?.hasError('max')) {
-                        Price cannot exceed $50,000,000
-                      }
-                    </mat-error>
-                  }
-                </mat-form-field>
-
-                <!-- Status Field (Edit Mode Only) -->
-                @if (isEditMode()) {
+              <form [formGroup]="basicInfoForm" class="step-form">
+                <div class="form-fields">
+                  <!-- Title Field -->
                   <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                    <mat-label>Status</mat-label>
-                    <mat-select formControlName="status" [disabled]="saving()">
-                      <mat-option value="ACTIVE">Active</mat-option>
-                      <mat-option value="PENDING">Pending</mat-option>
-                      <mat-option value="SOLD">Sold</mat-option>
-                      <mat-option value="INACTIVE">Inactive</mat-option>
-                    </mat-select>
-                    <mat-icon matSuffix>flag</mat-icon>
-                    @if (propertyForm.get('status')?.invalid && propertyForm.get('status')?.touched) {
+                    <mat-label>Property Title</mat-label>
+                    <input
+                      matInput
+                      formControlName="title"
+                      placeholder="Enter property title"
+                      required>
+                    <mat-icon matSuffix>title</mat-icon>
+                    @if (basicInfoForm.get('title')?.invalid && basicInfoForm.get('title')?.touched) {
                       <mat-error>
-                        Status is required
+                        @if (basicInfoForm.get('title')?.hasError('required')) {
+                          Title is required
+                        }
+                        @if (basicInfoForm.get('title')?.hasError('minlength')) {
+                          Title must be at least 3 characters long
+                        }
+                        @if (basicInfoForm.get('title')?.hasError('maxlength')) {
+                          Title cannot exceed 200 characters
+                        }
                       </mat-error>
                     }
                   </mat-form-field>
+
+                  <!-- Description Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Description</mat-label>
+                    <textarea
+                      matInput
+                      formControlName="description"
+                      placeholder="Enter property description"
+                      rows="4"
+                      required>
+                    </textarea>
+                    <mat-icon matSuffix>description</mat-icon>
+                    @if (basicInfoForm.get('description')?.invalid && basicInfoForm.get('description')?.touched) {
+                      <mat-error>
+                        @if (basicInfoForm.get('description')?.hasError('required')) {
+                          Description is required
+                        }
+                        @if (basicInfoForm.get('description')?.hasError('minlength')) {
+                          Description must be at least 10 characters long
+                        }
+                        @if (basicInfoForm.get('description')?.hasError('maxlength')) {
+                          Description cannot exceed 1000 characters
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Price Field -->
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-label>Price</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="price"
+                      placeholder="0"
+                      required>
+                    <span matTextPrefix>$&nbsp;</span>
+                    <mat-icon matSuffix>attach_money</mat-icon>
+                    @if (basicInfoForm.get('price')?.invalid && basicInfoForm.get('price')?.touched) {
+                      <mat-error>
+                        @if (basicInfoForm.get('price')?.hasError('required')) {
+                          Price is required
+                        }
+                        @if (basicInfoForm.get('price')?.hasError('min')) {
+                          Price must be greater than 0
+                        }
+                        @if (basicInfoForm.get('price')?.hasError('max')) {
+                          Price cannot exceed $50,000,000
+                        }
+                      </mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="step-actions">
+                  <button mat-raised-button color="primary" matStepperNext [disabled]="!basicInfoForm.valid">
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </mat-step>
+
+          <!-- Step 2: Property Details -->
+          <mat-step [stepControl]="propertyDetailsForm" label="Property Details" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">home</mat-icon>
+              <span>Property Details</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Property Details</h3>
+              <p class="mat-body-medium">Set property status and basic attributes</p>
+
+              <form [formGroup]="propertyDetailsForm" class="step-form">
+                <div class="form-fields">
+                  <!-- Status Field (Edit Mode Only) -->
+                  @if (isEditMode()) {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                      <mat-label>Status</mat-label>
+                      <mat-select formControlName="status" required>
+                        <mat-option value="ACTIVE">Active</mat-option>
+                        <mat-option value="PENDING">Pending</mat-option>
+                        <mat-option value="SOLD">Sold</mat-option>
+                        <mat-option value="INACTIVE">Inactive</mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>flag</mat-icon>
+                    </mat-form-field>
+                  }
+
+                  <!-- BASIC Category Attributes -->
+                  @for (attribute of categorizedAttributes().get('BASIC') || []; track trackByAttribute($index, attribute)) {
+                    <app-attribute-form-field
+                      [attribute]="attribute"
+                      [value]="getAttributeValue(attribute.id)"
+                      [disabled]="saving()"
+                      [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
+                      (valueChange)="onAttributeValueChange($event)">
+                    </app-attribute-form-field>
+                  }
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    Back
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext>
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </mat-step>
+
+          <!-- Step 3: Location -->
+          <mat-step label="Location" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">location_on</mat-icon>
+              <span>Location</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Location Details</h3>
+              <p class="mat-body-medium">Provide location information</p>
+
+              <div class="step-form">
+                <div class="form-fields">
+                  @for (attribute of categorizedAttributes().get('LOCATION') || []; track trackByAttribute($index, attribute)) {
+                    <app-attribute-form-field
+                      [attribute]="attribute"
+                      [value]="getAttributeValue(attribute.id)"
+                      [disabled]="saving()"
+                      [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
+                      (valueChange)="onAttributeValueChange($event)">
+                    </app-attribute-form-field>
+                  }
+
+                  @if ((categorizedAttributes().get('LOCATION') || []).length === 0) {
+                    <p class="mat-body-medium">No location attributes configured</p>
+                  }
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    Back
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext>
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-step>
+
+          <!-- Step 4: Structure -->
+          <mat-step label="Structure" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">architecture</mat-icon>
+              <span>Structure</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Structural Details</h3>
+              <p class="mat-body-medium">Define property structure and layout</p>
+
+              <div class="step-form">
+                <div class="form-fields">
+                  @for (attribute of categorizedAttributes().get('STRUCTURE') || []; track trackByAttribute($index, attribute)) {
+                    <app-attribute-form-field
+                      [attribute]="attribute"
+                      [value]="getAttributeValue(attribute.id)"
+                      [disabled]="saving()"
+                      [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
+                      (valueChange)="onAttributeValueChange($event)">
+                    </app-attribute-form-field>
+                  }
+
+                  @if ((categorizedAttributes().get('STRUCTURE') || []).length === 0) {
+                    <p class="mat-body-medium">No structure attributes configured</p>
+                  }
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    Back
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext>
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-step>
+
+          <!-- Step 5: Features -->
+          <mat-step label="Features" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">star</mat-icon>
+              <span>Features</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Property Features</h3>
+              <p class="mat-body-medium">Highlight special features and amenities</p>
+
+              <div class="step-form">
+                <div class="form-fields">
+                  @for (attribute of categorizedAttributes().get('FEATURES') || []; track trackByAttribute($index, attribute)) {
+                    <app-attribute-form-field
+                      [attribute]="attribute"
+                      [value]="getAttributeValue(attribute.id)"
+                      [disabled]="saving()"
+                      [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
+                      (valueChange)="onAttributeValueChange($event)">
+                    </app-attribute-form-field>
+                  }
+
+                  @if ((categorizedAttributes().get('FEATURES') || []).length === 0) {
+                    <p class="mat-body-medium">No feature attributes configured</p>
+                  }
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    Back
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext>
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-step>
+
+          <!-- Step 6: Financial -->
+          <mat-step label="Financial" [editable]="true">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">attach_money</mat-icon>
+              <span>Financial</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Financial Information</h3>
+              <p class="mat-body-medium">Add financial details and pricing information</p>
+
+              <div class="step-form">
+                <div class="form-fields">
+                  @for (attribute of categorizedAttributes().get('FINANCIAL') || []; track trackByAttribute($index, attribute)) {
+                    <app-attribute-form-field
+                      [attribute]="attribute"
+                      [value]="getAttributeValue(attribute.id)"
+                      [disabled]="saving()"
+                      [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
+                      (valueChange)="onAttributeValueChange($event)">
+                    </app-attribute-form-field>
+                  }
+
+                  @if ((categorizedAttributes().get('FINANCIAL') || []).length === 0) {
+                    <p class="mat-body-medium">No financial attributes configured</p>
+                  }
+                </div>
+
+                <div class="step-actions">
+                  <button mat-button matStepperPrevious>
+                    <mat-icon>arrow_back</mat-icon>
+                    Back
+                  </button>
+                  <button mat-raised-button color="primary" matStepperNext>
+                    Next
+                    <mat-icon>arrow_forward</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </mat-step>
+
+          <!-- Step 7: Review & Submit -->
+          <mat-step label="Review & Submit">
+            <ng-template matStepLabel>
+              <mat-icon class="step-icon">check_circle</mat-icon>
+              <span>Review & Submit</span>
+            </ng-template>
+
+            <div class="step-content">
+              <h3 class="mat-headline-small">Review Your Property</h3>
+              <p class="mat-body-medium">Please review all information before submitting</p>
+
+              <div class="review-container">
+                <!-- Basic Information Summary -->
+                <mat-card appearance="outlined" class="review-section">
+                  <mat-card-header>
+                    <mat-icon mat-card-avatar>info</mat-icon>
+                    <mat-card-title>Basic Information</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <dl class="review-list">
+                      <div class="review-item">
+                        <dt>Title:</dt>
+                        <dd>{{ basicInfoForm.value.title || 'Not set' }}</dd>
+                      </div>
+                      <div class="review-item">
+                        <dt>Description:</dt>
+                        <dd>{{ basicInfoForm.value.description || 'Not set' }}</dd>
+                      </div>
+                      <div class="review-item">
+                        <dt>Price:</dt>
+                        <dd>{{ basicInfoForm.value.price ? (basicInfoForm.value.price | currency) : 'Not set' }}</dd>
+                      </div>
+                      @if (isEditMode()) {
+                        <div class="review-item">
+                          <dt>Status:</dt>
+                          <dd>{{ propertyDetailsForm.value.status || 'Not set' }}</dd>
+                        </div>
+                      }
+                    </dl>
+                  </mat-card-content>
+                </mat-card>
+
+                <!-- Attributes Summary by Category -->
+                @for (categoryEntry of categorizedAttributes() | keyvalue; track categoryEntry.key) {
+                  @if (categoryEntry.value.length > 0) {
+                    <mat-card appearance="outlined" class="review-section">
+                      <mat-card-header>
+                        <mat-icon mat-card-avatar>{{ getCategoryIcon(categoryEntry.key) }}</mat-icon>
+                        <mat-card-title>{{ getCategoryDisplayName(categoryEntry.key) }}</mat-card-title>
+                      </mat-card-header>
+                      <mat-card-content>
+                        <dl class="review-list">
+                          @for (attribute of categoryEntry.value; track attribute.id) {
+                            @if (getAttributeValue(attribute.id) !== null && getAttributeValue(attribute.id) !== undefined && getAttributeValue(attribute.id) !== '') {
+                              <div class="review-item">
+                                <dt>{{ attribute.name }}:</dt>
+                                <dd>
+                                  @if (attribute.dataType === 'BOOLEAN') {
+                                    {{ getAttributeValue(attribute.id) ? 'Yes' : 'No' }}
+                                  } @else if (attribute.dataType === 'NUMBER') {
+                                    {{ getAttributeValue(attribute.id) | number }}
+                                  } @else if (attribute.dataType === 'DATE') {
+                                    {{ getAttributeValue(attribute.id) | date }}
+                                  } @else if (attribute.dataType === 'MULTI_SELECT') {
+                                    {{ getAttributeValue(attribute.id).join(', ') }}
+                                  } @else {
+                                    {{ getAttributeValue(attribute.id) }}
+                                  }
+                                </dd>
+                              </div>
+                            }
+                          }
+                        </dl>
+                      </mat-card-content>
+                    </mat-card>
+                  }
                 }
               </div>
 
-              <!-- Dynamic Attributes Section -->
-              @if (attributes().length > 0) {
-                <div class="attributes-section">
-                  <mat-divider></mat-divider>
-
-                  <div class="section-header">
-                    <h3 class="mat-headline-small">Property Attributes</h3>
-                    <p class="mat-body-medium">Additional property information</p>
-                  </div>
-
-                  <!-- Categorized Attributes -->
-                  <mat-accordion multi="true" class="attributes-accordion">
-                    @for (categoryEntry of categorizedAttributes() | keyvalue; track trackByCategory($index, categoryEntry)) {
-                      <mat-expansion-panel
-                        [expanded]="categoryEntry.key === 'BASICS'"
-                        class="category-panel">
-
-                        <!-- Panel Header -->
-                        <mat-expansion-panel-header>
-                          <mat-panel-title>
-                            <mat-icon class="category-icon">{{ getCategoryIcon(categoryEntry.key) }}</mat-icon>
-                            {{ getCategoryDisplayName(categoryEntry.key) }}
-                          </mat-panel-title>
-                          <mat-panel-description>
-                            {{ categoryEntry.value.length }}
-                            {{ categoryEntry.value.length === 1 ? 'attribute' : 'attributes' }}
-                          </mat-panel-description>
-                        </mat-expansion-panel-header>
-
-                        <!-- Panel Content -->
-                        <div class="category-attributes">
-                          @for (attribute of categoryEntry.value; track trackByAttribute($index, attribute)) {
-                            <app-attribute-form-field
-                              [attribute]="attribute"
-                              [value]="getAttributeValue(attribute.id)"
-                              [disabled]="saving()"
-                              [isDirty]="changeTrackingService.isAttributeDirty(attribute.id)"
-                              (valueChange)="onAttributeValueChange($event)">
-                            </app-attribute-form-field>
-                          }
-                        </div>
-                      </mat-expansion-panel>
-                    }
-                  </mat-accordion>
-                </div>
-              }
-
               <!-- Error Display -->
               @if (error()) {
-                <mat-card appearance="outlined" class="error-card">
+                <mat-card appearance="outlined" class="error-card" role="alert" aria-live="assertive">
                   <mat-card-content class="error-content">
-                    <mat-icon color="warn">error</mat-icon>
+                    <mat-icon color="warn" aria-hidden="true">error</mat-icon>
                     <span class="mat-body-medium">{{ error() }}</span>
                   </mat-card-content>
                 </mat-card>
               }
-            </mat-card-content>
 
-            <mat-card-actions align="end">
-              <button
-                mat-button
-                type="button"
-                (click)="resetForm()"
-                [disabled]="saving()">
-                <mat-icon>clear</mat-icon>
-                Reset Form
-              </button>
-              <button
-                mat-raised-button
-                color="primary"
-                type="submit"
-                [disabled]="propertyForm.invalid || saving()"
-                class="submit-button">
-                <ng-container>
-                @if (saving()) {
-                  <mat-progress-spinner diameter="18"></mat-progress-spinner>
-                  <span>{{ isEditMode() ? 'Updating...' : 'Creating...' }}</span>
-                } @else {
-                  <mat-icon>{{ isEditMode() ? 'save' : 'add' }}</mat-icon>
-                  <span>{{ isEditMode() ? 'Update Property' : 'Create Property' }}</span>
-                }</ng-container>
-              </button>
-            </mat-card-actions>
-          </form>
-        </mat-card>
-
+              <div class="step-actions">
+                <button mat-button matStepperPrevious>
+                  <mat-icon>arrow_back</mat-icon>
+                  Back
+                </button>
+                <button mat-button type="button" (click)="resetForm()">
+                  <mat-icon>clear</mat-icon>
+                  Reset Form
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  (click)="onSubmit()"
+                  [disabled]="saving()"
+                  class="submit-button">
+                  @if (saving()) {
+                    <ng-container>
+                      <mat-progress-spinner diameter="18" aria-label="Saving property"></mat-progress-spinner>
+                      <span>{{ isEditMode() ? 'Updating...' : 'Creating...' }}</span>
+                    </ng-container>
+                  } @else {
+                    <ng-container>
+                      <mat-icon>{{ isEditMode() ? 'save' : 'add' }}</mat-icon>
+                      <span>{{ isEditMode() ? 'Update Property' : 'Create Property' }}</span>
+                    </ng-container>
+                  }
+                </button>
+              </div>
+            </div>
+          </mat-step>
+        </mat-stepper>
       </div>
     }
   </div>
