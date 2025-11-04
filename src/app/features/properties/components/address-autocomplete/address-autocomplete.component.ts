@@ -14,6 +14,14 @@ interface AddressPrediction {
   secondaryText: string;
 }
 
+export interface AddressComponents {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
 @Component({
   selector: 'app-address-autocomplete',
   standalone: true,
@@ -66,12 +74,12 @@ interface AddressPrediction {
     .main-text {
       font-size: 14px;
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.87);
+      color: var(--mat-sys-on-surface);
     }
 
     .secondary-text {
       font-size: 12px;
-      color: rgba(0, 0, 0, 0.54);
+      color: var(--mat-sys-on-surface-variant);
       margin-top: 2px;
     }
   `]
@@ -79,7 +87,12 @@ interface AddressPrediction {
 export class AddressAutocompleteComponent implements OnInit, OnDestroy {
   @Input() initialValue = '';
   @Input() disabled = false;
-  @Output() addressSelected = new EventEmitter<{lat: number; lng: number; address: string}>();
+  @Output() addressSelected = new EventEmitter<{
+    lat: number;
+    lng: number;
+    address: string;
+    addressComponents?: AddressComponents;
+  }>();
 
   @ViewChild('addressInput', { read: ElementRef }) addressInput!: ElementRef<HTMLInputElement>;
 
@@ -87,9 +100,9 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
   predictions = signal<AddressPrediction[]>([]);
 
   private autocompleteService: google.maps.places.AutocompleteService | null = null;
-  private placesService: google.maps.places.PlacesService | null = null;
   private sessionToken: google.maps.places.AutocompleteSessionToken | null = null;
   private debounceTimer: any;
+  private placesLibrary: any = null;
 
   ngOnInit(): void {
     this.addressValue = this.initialValue;
@@ -102,17 +115,24 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private initializeServices(): void {
+  private async initializeServices(): Promise<void> {
     // Wait for Google Maps API to load
-    if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+    if (typeof google === 'undefined' || !google.maps) {
       setTimeout(() => this.initializeServices(), 100);
       return;
     }
 
-    // Initialize new Places API services
-    this.autocompleteService = new google.maps.places.AutocompleteService();
-    this.placesService = new google.maps.places.PlacesService(document.createElement('div'));
-    this.sessionToken = new google.maps.places.AutocompleteSessionToken();
+    try {
+      // Dynamically import the places library (new API method)
+      //@ts-ignore - importLibrary exists but may not be in all type definitions
+      this.placesLibrary = await google.maps.importLibrary('places');
+
+      // Initialize AutocompleteService and session token from the new library
+      this.autocompleteService = new this.placesLibrary.AutocompleteService();
+      this.sessionToken = new this.placesLibrary.AutocompleteSessionToken();
+    } catch (error) {
+      console.error('Error loading Places library:', error);
+    }
   }
 
   onInputChange(input: string): void {
@@ -167,33 +187,86 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
     }
   }
 
-  private fetchPlaceDetails(placeId: string): void {
-    if (!this.placesService) {
+  private parseAddressComponents(addressComponents: google.maps.places.AddressComponent[] | null | undefined): AddressComponents {
+    const components: AddressComponents = {};
+
+    if (!addressComponents) {
+      return components;
+    }
+
+    let streetNumber = '';
+    let route = '';
+
+    for (const component of addressComponents) {
+      const type = component.types[0];
+
+      switch (type) {
+        case 'street_number':
+          streetNumber = component.longText || '';
+          break;
+        case 'route':
+          route = component.longText || '';
+          break;
+        case 'locality':
+          if (component.longText) components.city = component.longText;
+          break;
+        case 'administrative_area_level_1':
+          if (component.shortText) components.state = component.shortText;
+          break;
+        case 'postal_code':
+          if (component.longText) components.postalCode = component.longText;
+          break;
+        case 'country':
+          if (component.longText) components.country = component.longText;
+          break;
+      }
+    }
+
+    // Combine street number and route
+    if (streetNumber || route) {
+      components.street = `${streetNumber} ${route}`.trim();
+    }
+
+    return components;
+  }
+
+  private async fetchPlaceDetails(placeId: string): Promise<void> {
+    if (!this.placesLibrary) {
+      console.error('Places library not loaded');
       return;
     }
 
-    this.placesService.getDetails(
-      {
-        placeId,
-        fields: ['place_id', 'formatted_address', 'geometry', 'name'],
-        sessionToken: this.sessionToken!
-      },
-      (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-          if (!place.geometry || !place.geometry.location) {
-            return;
-          }
+    try {
+      // Create Place instance with the place ID using dynamically loaded library
+      const { Place } = this.placesLibrary;
+      const place = new Place({
+        id: placeId,
+        requestedLanguage: 'en', // or use browser language
+      });
 
-          const lat = place.geometry.location.lat();
-          const lng = place.geometry.location.lng();
-          const address = place.formatted_address || place.name || '';
+      // Fetch place details using the new API
+      await place.fetchFields({
+        fields: ['location', 'formattedAddress', 'addressComponents']
+      });
 
-          this.addressSelected.emit({ lat, lng, address });
-
-          // Reset session token after successful selection
-          this.sessionToken = new google.maps.places.AutocompleteSessionToken();
-        }
+      // Check if location is available
+      if (!place.location) {
+        console.error('Place location not available');
+        return;
       }
-    );
+
+      // Extract data from Place object (camelCase properties)
+      const lat = place.location.lat();
+      const lng = place.location.lng();
+      const address = place.formattedAddress || '';
+      const addressComponents = this.parseAddressComponents(place.addressComponents);
+
+      this.addressSelected.emit({ lat, lng, address, addressComponents });
+
+      // Reset session token after successful selection
+      this.sessionToken = new this.placesLibrary.AutocompleteSessionToken();
+    } catch (error) {
+      console.error('Error fetching place details:', error);
+    }
   }
 }
