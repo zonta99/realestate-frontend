@@ -99,7 +99,7 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
   addressValue = '';
   predictions = signal<AddressPrediction[]>([]);
 
-  private autocompleteService: google.maps.places.AutocompleteService | null = null;
+  // AutocompleteService removed - using AutocompleteSuggestion.fetchAutocompleteSuggestions() static method instead
   private sessionToken: google.maps.places.AutocompleteSessionToken | null = null;
   private debounceTimer: any;
   private placesLibrary: any = null;
@@ -127,8 +127,7 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
       //@ts-ignore - importLibrary exists but may not be in all type definitions
       this.placesLibrary = await google.maps.importLibrary('places');
 
-      // Initialize AutocompleteService and session token from the new library
-      this.autocompleteService = new this.placesLibrary.AutocompleteService();
+      // Initialize session token from the new library
       this.sessionToken = new this.placesLibrary.AutocompleteSessionToken();
     } catch (error) {
       console.error('Error loading Places library:', error);
@@ -150,31 +149,40 @@ export class AddressAutocompleteComponent implements OnInit, OnDestroy {
     }, 300);
   }
 
-  private fetchPredictions(input: string): void {
-    if (!this.autocompleteService) {
+  private async fetchPredictions(input: string): Promise<void> {
+    if (!this.placesLibrary) {
       return;
     }
 
-    this.autocompleteService.getPlacePredictions(
-      {
+    try {
+      const { AutocompleteSuggestion } = this.placesLibrary;
+
+      const request = {
         input,
-        types: ['address'],
+        includedPrimaryTypes: ['geocode'],
         sessionToken: this.sessionToken!
-      },
-      (predictions, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-          const addressPredictions: AddressPrediction[] = predictions.map(p => ({
-            placeId: p.place_id,
-            description: p.description,
-            mainText: p.structured_formatting.main_text,
-            secondaryText: p.structured_formatting.secondary_text
+      };
+
+      const { suggestions } = await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+
+      if (suggestions && suggestions.length > 0) {
+        const addressPredictions: AddressPrediction[] = suggestions
+          .map((s: any) => s.placePrediction)
+          .filter((p: any) => p)
+          .map((p: any) => ({
+            placeId: p.placeId,
+            description: p.text?.text || '',
+            mainText: p.mainText?.text || '',
+            secondaryText: p.secondaryText?.text || ''
           }));
-          this.predictions.set(addressPredictions);
-        } else {
-          this.predictions.set([]);
-        }
+        this.predictions.set(addressPredictions);
+      } else {
+        this.predictions.set([]);
       }
-    );
+    } catch (error) {
+      console.error('Error fetching autocomplete predictions:', error);
+      this.predictions.set([]);
+    }
   }
 
   onOptionSelected(event: any): void {
