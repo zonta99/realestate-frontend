@@ -8,7 +8,10 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrXWAR6pFH97AqEN55X7ijO7rhUHsRVks&loading=async"></script>
+  <!-- Google Maps API key should be loaded from environment config -->
+  <!-- For development: Update src/environments/environment.local.ts -->
+  <!-- For production: Set GOOGLE_MAPS_API_KEY environment variable -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&loading=async"></script>
 </head>
 <body>
   <app-root></app-root>

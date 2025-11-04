@@ -128,14 +128,18 @@ this.authFacade.isAuthenticated$.pipe(...)
 The properties feature demonstrates the full architecture pattern:
 
 1. **Store** (`store/`): Complete NgRx implementation with:
-   - CRUD operations for properties
-   - Property values (attribute key-value pairs) management
-   - Property sharing data
-   - Pagination and filtering support
-   - Granular loading states (loading, creating, updating, deleting, loadingValues, loadingSharing)
+   - **Atomic Batch Operations**: Single-request create/update with attributes
+     - `createPropertyWithAttributes`: POST to `/api/properties/with-attributes`
+     - `updatePropertyWithAttributes`: PUT to `/api/properties/{id}/with-attributes`
+   - Property listing with pagination and filtering
+   - Property sharing data management
+   - Granular loading states (loading, creating, updating, deleting, loadingSharing)
 
 2. **Services**:
-   - `PropertyService`: API communication
+   - `PropertyService`: API communication with batch endpoints
+     - `createPropertyWithAttributes()`: Atomic create with property data + attributes
+     - `updatePropertyWithAttributes()`: Atomic update with property data + attributes
+     - Normalizes attribute values before sending to backend
    - `AttributeService`: Attribute catalog and property values APIs
    - `ChangeTrackingService`: Tracks unsaved changes to prevent data loss
 
@@ -143,18 +147,42 @@ The properties feature demonstrates the full architecture pattern:
    - `PropertyListComponent`: Paginated property listing
    - `PropertyDetailComponent`: View property details
    - `PropertyFormComponent`: Create/edit properties with stepper navigation
+     - Dispatches NgRx actions for batch create/update operations
+     - Uses `ChangeTrackingService` to track dirty attributes
+     - Only sends changed attributes on update (optimized)
    - `PropertyValuesDisplayComponent`: Display property attributes
    - `AttributeFormFieldComponent`: Dynamic form field based on attribute type
    - `AttributeDisplayComponent`: Display attribute values
    - `AddressAutocompleteComponent`: Google Maps address autocomplete with dropdown
 
+**Important**: Always use batch operations (`createPropertyWithAttributes`, `updatePropertyWithAttributes`) for property CRUD. This reduces HTTP requests by 75-85% compared to individual operations.
+
 ### Environment Configuration
 
-- **Development**: `src/environments/environment.ts`
+The application uses a multi-tier environment configuration system:
+
+- **Base Configuration**: `src/environments/environment.ts`
+  - Contains default values and placeholders
+  - **NEVER commit real API keys here** - use placeholders only
   - API URL: `http://localhost:8080`
   - DevTools enabled
 
+- **Local Development**: `src/environments/environment.local.ts` (GITIGNORED)
+  - Override file for local development secrets
+  - Contains real API keys for development
+  - Copy from `environment.local.ts.example` and add your keys
+  - **This file is excluded from version control**
+
 - **Production**: `src/environments/environment.prod.ts`
+  - Production configuration
+  - Use environment variables or CI/CD secrets for sensitive values
+
+**Security Best Practices**:
+1. Never commit API keys or secrets to version control
+2. Use `environment.local.ts` for local development keys (gitignored)
+3. Use `environment.local.ts.example` as a template for team members
+4. Configure API key restrictions in cloud consoles (domain/IP restrictions)
+5. Rotate keys immediately if exposed in git history
 
 Access via: `import { environment } from 'environments/environment'`
 
@@ -222,6 +250,8 @@ googleMaps: {
 8. **Error Logging**: Use `ErrorLoggingService` instead of `console.error/log/warn` for production code
 9. **Form Auto-save**: Use `FormAutoSaveService` for complex forms to prevent data loss
 10. **Accessibility**: Add ARIA labels, keyboard shortcuts (Ctrl+S, Esc), and screen reader support to all forms
+11. **Batch Operations**: Always use batch API endpoints (e.g., `/with-attributes`) instead of sequential individual requests
+12. **API Key Security**: Never commit API keys - use `environment.local.ts` (gitignored) for local development
 
 ## Common Workflows
 
@@ -244,6 +274,23 @@ googleMaps: {
 
 Property attributes are typed key-value pairs (e.g., "bedrooms": "3", "price": "500000"):
 - Attribute definitions come from `AttributeService.getAllAttributes()`
-- Property values stored per property via `PropertyActions.loadPropertyValues(propertyId)`
+- **Create/Update**: Use batch operations with `PropertyActions.createPropertyWithAttributes()` or `updatePropertyWithAttributes()`
+  - These actions accept `PropertyWithAttributes` interface containing both property data and `attributeValues` object
+  - Attribute values are automatically normalized before sending to backend
+  - Format: `{ attributeId: value }` where `attributeId` is numeric
 - Attribute types: TEXT, NUMBER, DATE, BOOLEAN, DROPDOWN, MULTI_SELECT
 - Use `AttributeDisplayComponent` for rendering and `AttributeFormFieldComponent` for editing
+
+**Example PropertyWithAttributes**:
+```typescript
+{
+  title: "Modern Apartment",
+  description: "Beautiful 2BR apartment",
+  price: 500000,
+  attributeValues: {
+    1: "2",        // bedrooms (attribute ID 1)
+    2: "1",        // bathrooms (attribute ID 2)
+    3: "850"       // square feet (attribute ID 3)
+  }
+}
+```

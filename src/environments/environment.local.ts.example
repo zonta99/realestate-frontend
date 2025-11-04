@@ -1,4 +1,6 @@
-// src/environments/environment.ts
+// src/environments/environment.local.ts.example
+// Copy this file to environment.local.ts and add your real API keys
+
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080',
@@ -9,10 +11,7 @@ export const environment = {
     enableLogging: true,
   },
   googleMaps: {
-    // DO NOT commit real API keys here!
-    // Use environment.local.ts for development (gitignored)
-    // Use environment variables for production
-    apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
+    apiKey: 'YOUR_GOOGLE_MAPS_API_KEY_HERE', // Get from: https://console.cloud.google.com/google/maps-apis/credentials
     defaultZoom: 15,
     defaultCenter: { lat: 40.7128, lng: -74.0060 } // NYC default
   }
