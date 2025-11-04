@@ -211,10 +211,28 @@
 
             <div class="step-content">
               <h3 class="mat-headline-small">Location Details</h3>
-              <p class="mat-body-medium">Provide location information</p>
+              <p class="mat-body-medium">Search for the property address using Google Maps</p>
 
               <div class="step-form">
                 <div class="form-fields">
+                  <!-- Google Maps Address Autocomplete -->
+                  <app-address-autocomplete
+                    [initialValue]="selectedAddress()"
+                    [disabled]="saving()"
+                    (addressSelected)="onAddressSelected($event)">
+                  </app-address-autocomplete>
+
+                  @if (selectedLat() && selectedLng()) {
+                    <div class="address-info" style="padding: 12px; background: var(--mdc-theme-surface-dim, #f5f5f5); border-radius: 4px; margin-bottom: 16px;">
+                      <p class="mat-body-small" style="margin: 0;">
+                        <strong>Selected Location:</strong> {{ selectedAddress() }}
+                      </p>
+                      <p class="mat-body-small" style="margin: 4px 0 0 0; color: var(--mdc-theme-on-surface-variant, #666);">
+                        Coordinates: {{ selectedLat() }}, {{ selectedLng() }}
+                      </p>
+                    </div>
+                  }
+
                   @for (attribute of categorizedAttributes().get('LOCATION') || []; track trackByAttribute($index, attribute)) {
                     <app-attribute-form-field
                       [attribute]="attribute"

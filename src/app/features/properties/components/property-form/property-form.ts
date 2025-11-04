@@ -27,6 +27,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { UnsavedChangesDialogComponent, UnsavedChangesDialogResult } from '../../../../shared/components/unsaved-changes-dialog/unsaved-changes-dialog';
 import { ErrorLoggingService } from '../../../../core/services/error-logging.service';
 import { AttributeValueNormalizer } from '../../../../shared/utils/attribute-value-normalizer';
+import { AddressAutocompleteComponent } from '../address-autocomplete/address-autocomplete.component';
 
 @Component({
   selector: 'app-property-form',
@@ -49,7 +50,8 @@ import { AttributeValueNormalizer } from '../../../../shared/utils/attribute-val
     MatDividerModule,
     MatExpansionModule,
     MatStepperModule,
-    AttributeFormFieldComponent
+    AttributeFormFieldComponent,
+    AddressAutocompleteComponent
   ]
 })
 export class PropertyFormComponent implements OnInit, OnDestroy {
@@ -120,6 +122,11 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
   propertyDetailsForm = this.fb.group({
     status: [PropertyStatus.ACTIVE, [Validators.required]]
   });
+
+  // Location signals
+  selectedAddress = signal<string>('');
+  selectedLat = signal<number | null>(null);
+  selectedLng = signal<number | null>(null);
 
   ngOnInit(): void {
     this.detectMode();
@@ -393,6 +400,15 @@ export class PropertyFormComponent implements OnInit, OnDestroy {
       this.stepper.reset();
       this.currentStep.set(0);
     }
+  }
+
+  /**
+   * Handle address selection from autocomplete
+   */
+  onAddressSelected(event: {lat: number; lng: number; address: string}): void {
+    this.selectedAddress.set(event.address);
+    this.selectedLat.set(event.lat);
+    this.selectedLng.set(event.lng);
   }
 
   goBack(): void {
