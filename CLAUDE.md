@@ -188,7 +188,7 @@ Access via: `import { environment } from 'environments/environment'`
 
 ### Google Maps Integration
 
-The application uses Google Maps Places API (New) for address autocomplete functionality:
+The application uses Google Maps **Places API (New)** for address autocomplete functionality:
 
 **Configuration** (`src/environments/environment.ts`):
 ```typescript
@@ -200,19 +200,21 @@ googleMaps: {
 ```
 
 **API Setup**:
-- Loaded in `src/index.html` with `places` library
+- Loaded in `src/index.html` using dynamic library loading (`loading=async`)
+- No `&libraries=places` parameter needed - uses `google.maps.importLibrary('places')`
 - Requires **Places API (New)** enabled in Google Cloud Console
-- Uses new `AutocompleteService` + `PlacesService` (not deprecated `Autocomplete` widget)
+- Uses new `AutocompleteSuggestion.fetchAutocompleteSuggestions()` (not deprecated `AutocompleteService`)
+- Uses new `Place` class with `fetchFields()` method (not deprecated `PlacesService`)
 
 **AddressAutocompleteComponent** (`src/app/features/properties/components/address-autocomplete/`):
 - Standalone Material autocomplete with dropdown predictions
 - Session token management for billing optimization
 - 300ms debounce to reduce API calls
 - Displays structured addresses (main text + secondary text)
-- Emits `{lat, lng, address}` on selection
+- Emits `{lat, lng, address, addressComponents}` on selection with parsed street, city, state, postal code, country
 - Usage: `<app-address-autocomplete [initialValue]="address" (addressSelected)="onAddressSelect($event)">`
 
-**Important**: Always use the new Places API services, not the deprecated `google.maps.places.Autocomplete` widget.
+**Important**: Always use the new Places API methods (`AutocompleteSuggestion`, `Place.fetchFields()`), not the deprecated `google.maps.places.Autocomplete` widget or legacy services.
 
 ### Shared Services & Utilities
 
