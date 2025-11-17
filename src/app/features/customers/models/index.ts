@@ -1,3 +1,3 @@
 // src/app/features/customers/models/index.ts
 
-export * from './customer.model';
+export * from './customer.interface';

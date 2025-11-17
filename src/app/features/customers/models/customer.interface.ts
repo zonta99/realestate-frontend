@@ -107,3 +107,19 @@ export interface ApiResponse<T = any> {
   message: string;
   data?: T;
 }
+
+export interface PropertyMatch {
+  propertyId: number;
+  title: string;
+  price: number;
+  bedrooms?: number;
+  city?: string;
+  matchScore: number;
+}
+
+export interface CustomerMatchesResponse {
+  customerId: number;
+  customerName: string;
+  matches: PropertyMatch[];
+  totalMatches: number;
+}
