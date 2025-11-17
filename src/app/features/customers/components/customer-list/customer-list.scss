@@ -1,0 +1,186 @@
+// src/app/features/customers/components/customer-list/customer-list.scss
+
+.mat-app-background {
+  min-height: 100vh;
+  background: var(--mat-app-background-color, #fafafa);
+}
+
+mat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .add-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.content-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.filters-card {
+  margin-bottom: 24px;
+
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+
+  .filters-form {
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+  }
+
+  mat-card-actions {
+    padding: 16px;
+    gap: 8px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 16px;
+}
+
+.error-card {
+  margin-bottom: 24px;
+
+  .error-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 16px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+.table-card {
+  margin-bottom: 16px;
+  overflow: auto;
+
+  mat-card-content {
+    padding: 0;
+  }
+
+  .customers-table {
+    width: 100%;
+
+    th {
+      font-weight: 600;
+      background-color: var(--mat-table-header-background-color, #f5f5f5);
+    }
+
+    td, th {
+      padding: 16px;
+    }
+
+    mat-chip {
+      min-height: 24px;
+      font-size: 12px;
+    }
+
+    .delete-button {
+      color: var(--mat-warn-color, #f44336);
+
+      mat-icon {
+        color: var(--mat-warn-color, #f44336);
+      }
+    }
+  }
+}
+
+mat-paginator {
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.empty-card {
+  .empty-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    gap: 16px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 72px;
+      width: 72px;
+      height: 72px;
+      color: var(--mat-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 768px) {
+  .content-container {
+    padding: 16px;
+  }
+
+  mat-toolbar {
+    padding: 0 16px;
+    flex-wrap: wrap;
+
+    .add-button {
+      margin-top: 8px;
+    }
+  }
+
+  .filters-form {
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .table-card {
+    .customers-table {
+      td, th {
+        padding: 12px 8px;
+      }
+    }
+  }
+}
