@@ -1,297 +1,217 @@
 // src/app/features/customers/store/customer.reducer.ts
+
 import { createReducer, on } from '@ngrx/store';
-import { Customer, CustomerListParams, CustomerSearchCriteria } from '../models/customer.interface';
-import { CustomerActions } from './customer.actions';
+import {
+  Customer,
+  CustomerSearchCriteria,
+  CustomerMatchesResponse
+} from '../models';
+import * as CustomerActions from './customer.actions';
 
+/**
+ * Customer feature state interface
+ */
 export interface CustomerState {
-  // Customers list and pagination
   customers: Customer[];
-  totalElements: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-
-  // Selected customer details
   selectedCustomer: Customer | null;
-  customerSearchCriteria: { [customerId: number]: CustomerSearchCriteria[] };
-  propertyMatches: { [customerId: number]: any[] };
-
-  // Filters
-  filters: CustomerListParams;
-
-  // Loading states
+  searchCriteria: CustomerSearchCriteria | null;
+  matches: CustomerMatchesResponse | null;
   loading: boolean;
   creating: boolean;
   updating: boolean;
   deleting: boolean;
-  loadingCriteria: boolean;
   loadingMatches: boolean;
-
-  // Error handling
-  error: any;
-
-  // UI state
-  lastOperation: string | null;
+  error: string | null;
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
 }
 
+/**
+ * Initial state
+ */
 export const initialState: CustomerState = {
   customers: [],
-  totalElements: 0,
-  totalPages: 0,
-  currentPage: 0,
-  pageSize: 20,
-
   selectedCustomer: null,
-  customerSearchCriteria: {},
-  propertyMatches: {},
-
-  filters: {},
-
+  searchCriteria: null,
+  matches: null,
   loading: false,
   creating: false,
   updating: false,
   deleting: false,
-  loadingCriteria: false,
   loadingMatches: false,
-
   error: null,
-
-  lastOperation: null
+  totalElements: 0,
+  totalPages: 0,
+  currentPage: 0
 };
 
+/**
+ * Customer reducer
+ */
 export const customerReducer = createReducer(
   initialState,
 
-  // Load Customers
-  on(CustomerActions.loadCustomers, (state, { params }) => ({
+  // Load customers
+  on(CustomerActions.loadCustomers, (state) => ({
     ...state,
     loading: true,
-    error: null,
-    filters: params || state.filters,
-    lastOperation: 'loadCustomers'
+    error: null
   })),
-
-  on(CustomerActions.loadCustomersSuccess, (state, { response }) => ({
+  on(CustomerActions.loadCustomersSuccess, (state, { customers, totalElements, totalPages }) => ({
     ...state,
-    customers: response.content,
-    totalElements: response.totalElements,
-    totalPages: response.totalPages,
-    currentPage: response.number,
-    pageSize: response.size,
+    customers,
+    totalElements,
+    totalPages,
     loading: false,
     error: null
   })),
-
   on(CustomerActions.loadCustomersFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error
   })),
 
-  // Load Customer by ID
+  // Load single customer
   on(CustomerActions.loadCustomer, (state) => ({
     ...state,
     loading: true,
-    error: null,
-    lastOperation: 'loadCustomer'
+    error: null
   })),
-
   on(CustomerActions.loadCustomerSuccess, (state, { customer }) => ({
     ...state,
     selectedCustomer: customer,
     loading: false,
     error: null
   })),
-
   on(CustomerActions.loadCustomerFailure, (state, { error }) => ({
     ...state,
     loading: false,
     error
   })),
 
-  // Create Customer
+  // Create customer
   on(CustomerActions.createCustomer, (state) => ({
     ...state,
     creating: true,
-    error: null,
-    lastOperation: 'createCustomer'
+    error: null
   })),
-
   on(CustomerActions.createCustomerSuccess, (state, { customer }) => ({
     ...state,
-    customers: [customer, ...state.customers],
+    customers: [...state.customers, customer],
     selectedCustomer: customer,
     creating: false,
-    error: null,
-    totalElements: state.totalElements + 1
+    error: null
   })),
-
   on(CustomerActions.createCustomerFailure, (state, { error }) => ({
     ...state,
     creating: false,
     error
   })),
 
-  // Update Customer
+  // Update customer
   on(CustomerActions.updateCustomer, (state) => ({
     ...state,
     updating: true,
-    error: null,
-    lastOperation: 'updateCustomer'
+    error: null
   })),
-
   on(CustomerActions.updateCustomerSuccess, (state, { customer }) => ({
     ...state,
     customers: state.customers.map(c => c.id === customer.id ? customer : c),
-    selectedCustomer: state.selectedCustomer?.id === customer.id ? customer : state.selectedCustomer,
+    selectedCustomer: customer,
     updating: false,
     error: null
   })),
-
   on(CustomerActions.updateCustomerFailure, (state, { error }) => ({
     ...state,
     updating: false,
     error
   })),
 
-  // Delete Customer
+  // Delete customer
   on(CustomerActions.deleteCustomer, (state) => ({
     ...state,
     deleting: true,
-    error: null,
-    lastOperation: 'deleteCustomer'
+    error: null
   })),
-
   on(CustomerActions.deleteCustomerSuccess, (state, { id }) => ({
     ...state,
     customers: state.customers.filter(c => c.id !== id),
     selectedCustomer: state.selectedCustomer?.id === id ? null : state.selectedCustomer,
     deleting: false,
-    error: null,
-    totalElements: Math.max(0, state.totalElements - 1),
-    // Remove associated data
-    customerSearchCriteria: Object.fromEntries(
-      Object.entries(state.customerSearchCriteria).filter(([customerId]) => +customerId !== id)
-    ),
-    propertyMatches: Object.fromEntries(
-      Object.entries(state.propertyMatches).filter(([customerId]) => +customerId !== id)
-    )
+    error: null
   })),
-
   on(CustomerActions.deleteCustomerFailure, (state, { error }) => ({
     ...state,
     deleting: false,
     error
   })),
 
-  // Search Criteria Management
+  // Set search criteria
+  on(CustomerActions.setSearchCriteria, (state) => ({
+    ...state,
+    loading: true,
+    error: null
+  })),
+  on(CustomerActions.setSearchCriteriaSuccess, (state, { criteria }) => ({
+    ...state,
+    searchCriteria: criteria,
+    loading: false,
+    error: null
+  })),
+  on(CustomerActions.setSearchCriteriaFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error
+  })),
+
+  // Load search criteria
   on(CustomerActions.loadSearchCriteria, (state) => ({
     ...state,
-    loadingCriteria: true,
-    error: null,
-    lastOperation: 'loadSearchCriteria'
-  })),
-
-  on(CustomerActions.loadSearchCriteriaSuccess, (state, { customerId, criteria }) => ({
-    ...state,
-    customerSearchCriteria: {
-      ...state.customerSearchCriteria,
-      [customerId]: criteria
-    },
-    loadingCriteria: false,
+    loading: true,
     error: null
   })),
-
+  on(CustomerActions.loadSearchCriteriaSuccess, (state, { criteria }) => ({
+    ...state,
+    searchCriteria: criteria,
+    loading: false,
+    error: null
+  })),
   on(CustomerActions.loadSearchCriteriaFailure, (state, { error }) => ({
     ...state,
-    loadingCriteria: false,
+    loading: false,
     error
   })),
 
-  on(CustomerActions.createSearchCriteria, (state) => ({
-    ...state,
-    loadingCriteria: true,
-    error: null,
-    lastOperation: 'createSearchCriteria'
-  })),
-
-  on(CustomerActions.createSearchCriteriaSuccess, (state, { customerId, criteria }) => ({
-    ...state,
-    customerSearchCriteria: {
-      ...state.customerSearchCriteria,
-      [customerId]: [...(state.customerSearchCriteria[customerId] || []), criteria]
-    },
-    loadingCriteria: false,
-    error: null
-  })),
-
-  on(CustomerActions.createSearchCriteriaFailure, (state, { error }) => ({
-    ...state,
-    loadingCriteria: false,
-    error
-  })),
-
-  // Property Matches
-  on(CustomerActions.loadPropertyMatches, (state) => ({
+  // Load matches
+  on(CustomerActions.loadMatches, (state) => ({
     ...state,
     loadingMatches: true,
-    error: null,
-    lastOperation: 'loadPropertyMatches'
+    error: null
   })),
-
-  on(CustomerActions.loadPropertyMatchesSuccess, (state, { customerId, matches }) => ({
+  on(CustomerActions.loadMatchesSuccess, (state, { matches }) => ({
     ...state,
-    propertyMatches: {
-      ...state.propertyMatches,
-      [customerId]: matches
-    },
+    matches,
     loadingMatches: false,
     error: null
   })),
-
-  on(CustomerActions.loadPropertyMatchesFailure, (state, { error }) => ({
+  on(CustomerActions.loadMatchesFailure, (state, { error }) => ({
     ...state,
     loadingMatches: false,
     error
   })),
 
-  // UI State Management
-  on(CustomerActions.setLoading, (state, { loading }) => ({
-    ...state,
-    loading
-  })),
-
-  on(CustomerActions.clearError, (state) => ({
-    ...state,
-    error: null
-  })),
-
+  // Clear selected customer
   on(CustomerActions.clearSelectedCustomer, (state) => ({
     ...state,
-    selectedCustomer: null
+    selectedCustomer: null,
+    searchCriteria: null,
+    matches: null
   })),
 
-  on(CustomerActions.setCurrentPage, (state, { page }) => ({
+  // Clear matches
+  on(CustomerActions.clearMatches, (state) => ({
     ...state,
-    currentPage: page
-  })),
-
-  on(CustomerActions.setPageSize, (state, { size }) => ({
-    ...state,
-    pageSize: size
-  })),
-
-  on(CustomerActions.setFilters, (state, { filters }) => ({
-    ...state,
-    filters
-  })),
-
-  on(CustomerActions.clearFilters, (state) => ({
-    ...state,
-    filters: {}
-  })),
-
-  on(CustomerActions.resetState, () => ({
-    ...initialState
+    matches: null
   }))
 );

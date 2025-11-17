@@ -1,65 +1,148 @@
 // src/app/features/customers/store/customer.actions.ts
-import { createActionGroup, emptyProps, props } from '@ngrx/store';
+
+import { createAction, props } from '@ngrx/store';
 import {
   Customer,
-  CustomerPageResponse,
-  CustomerListParams,
-  CustomerSearchCriteria,
   CreateCustomerRequest,
   UpdateCustomerRequest,
-  CreateSearchCriteriaRequest
-} from '../models/customer.interface';
+  CustomerSearchCriteria,
+  CustomerMatchesResponse
+} from '../models';
 
-export const CustomerActions = createActionGroup({
-  source: 'Customer',
-  events: {
-    // Load Customers
-    'Load Customers': props<{ params?: CustomerListParams }>(),
-    'Load Customers Success': props<{ response: CustomerPageResponse }>(),
-    'Load Customers Failure': props<{ error: any }>(),
+// Load customers (paginated)
+export const loadCustomers = createAction(
+  '[Customer] Load Customers',
+  props<{ page?: number; size?: number; status?: string }>()
+);
 
-    // Load Customer by ID
-    'Load Customer': props<{ id: number }>(),
-    'Load Customer Success': props<{ customer: Customer }>(),
-    'Load Customer Failure': props<{ error: any }>(),
+export const loadCustomersSuccess = createAction(
+  '[Customer] Load Customers Success',
+  props<{ customers: Customer[]; totalElements: number; totalPages: number }>()
+);
 
-    // Create Customer
-    'Create Customer': props<{ customer: CreateCustomerRequest }>(),
-    'Create Customer Success': props<{ customer: Customer }>(),
-    'Create Customer Failure': props<{ error: any }>(),
+export const loadCustomersFailure = createAction(
+  '[Customer] Load Customers Failure',
+  props<{ error: string }>()
+);
 
-    // Update Customer
-    'Update Customer': props<{ id: number; customer: UpdateCustomerRequest }>(),
-    'Update Customer Success': props<{ customer: Customer }>(),
-    'Update Customer Failure': props<{ error: any }>(),
+// Load single customer
+export const loadCustomer = createAction(
+  '[Customer] Load Customer',
+  props<{ id: number }>()
+);
 
-    // Delete Customer
-    'Delete Customer': props<{ id: number }>(),
-    'Delete Customer Success': props<{ id: number; message: string }>(),
-    'Delete Customer Failure': props<{ error: any }>(),
+export const loadCustomerSuccess = createAction(
+  '[Customer] Load Customer Success',
+  props<{ customer: Customer }>()
+);
 
-    // Search Criteria Management
-    'Load Search Criteria': props<{ customerId: number }>(),
-    'Load Search Criteria Success': props<{ customerId: number; criteria: CustomerSearchCriteria[] }>(),
-    'Load Search Criteria Failure': props<{ error: any }>(),
+export const loadCustomerFailure = createAction(
+  '[Customer] Load Customer Failure',
+  props<{ error: string }>()
+);
 
-    'Create Search Criteria': props<{ customerId: number; criteria: CreateSearchCriteriaRequest }>(),
-    'Create Search Criteria Success': props<{ customerId: number; criteria: CustomerSearchCriteria }>(),
-    'Create Search Criteria Failure': props<{ error: any }>(),
+// Create customer
+export const createCustomer = createAction(
+  '[Customer] Create Customer',
+  props<{ customer: CreateCustomerRequest }>()
+);
 
-    // Property Matches
-    'Load Property Matches': props<{ customerId: number }>(),
-    'Load Property Matches Success': props<{ customerId: number; matches: any[] }>(),
-    'Load Property Matches Failure': props<{ error: any }>(),
+export const createCustomerSuccess = createAction(
+  '[Customer] Create Customer Success',
+  props<{ customer: Customer }>()
+);
 
-    // UI State Management
-    'Set Loading': props<{ loading: boolean }>(),
-    'Clear Error': emptyProps(),
-    'Clear Selected Customer': emptyProps(),
-    'Set Current Page': props<{ page: number }>(),
-    'Set Page Size': props<{ size: number }>(),
-    'Set Filters': props<{ filters: CustomerListParams }>(),
-    'Clear Filters': emptyProps(),
-    'Reset State': emptyProps()
-  }
-});
+export const createCustomerFailure = createAction(
+  '[Customer] Create Customer Failure',
+  props<{ error: string }>()
+);
+
+// Update customer
+export const updateCustomer = createAction(
+  '[Customer] Update Customer',
+  props<{ id: number; customer: UpdateCustomerRequest }>()
+);
+
+export const updateCustomerSuccess = createAction(
+  '[Customer] Update Customer Success',
+  props<{ customer: Customer }>()
+);
+
+export const updateCustomerFailure = createAction(
+  '[Customer] Update Customer Failure',
+  props<{ error: string }>()
+);
+
+// Delete customer
+export const deleteCustomer = createAction(
+  '[Customer] Delete Customer',
+  props<{ id: number }>()
+);
+
+export const deleteCustomerSuccess = createAction(
+  '[Customer] Delete Customer Success',
+  props<{ id: number }>()
+);
+
+export const deleteCustomerFailure = createAction(
+  '[Customer] Delete Customer Failure',
+  props<{ error: string }>()
+);
+
+// Set search criteria
+export const setSearchCriteria = createAction(
+  '[Customer] Set Search Criteria',
+  props<{ customerId: number; criteria: CustomerSearchCriteria }>()
+);
+
+export const setSearchCriteriaSuccess = createAction(
+  '[Customer] Set Search Criteria Success',
+  props<{ criteria: CustomerSearchCriteria }>()
+);
+
+export const setSearchCriteriaFailure = createAction(
+  '[Customer] Set Search Criteria Failure',
+  props<{ error: string }>()
+);
+
+// Load search criteria
+export const loadSearchCriteria = createAction(
+  '[Customer] Load Search Criteria',
+  props<{ customerId: number }>()
+);
+
+export const loadSearchCriteriaSuccess = createAction(
+  '[Customer] Load Search Criteria Success',
+  props<{ criteria: CustomerSearchCriteria }>()
+);
+
+export const loadSearchCriteriaFailure = createAction(
+  '[Customer] Load Search Criteria Failure',
+  props<{ error: string }>()
+);
+
+// Load property matches
+export const loadMatches = createAction(
+  '[Customer] Load Matches',
+  props<{ customerId: number }>()
+);
+
+export const loadMatchesSuccess = createAction(
+  '[Customer] Load Matches Success',
+  props<{ matches: CustomerMatchesResponse }>()
+);
+
+export const loadMatchesFailure = createAction(
+  '[Customer] Load Matches Failure',
+  props<{ error: string }>()
+);
+
+// Clear selected customer
+export const clearSelectedCustomer = createAction(
+  '[Customer] Clear Selected Customer'
+);
+
+// Clear matches
+export const clearMatches = createAction(
+  '[Customer] Clear Matches'
+);
