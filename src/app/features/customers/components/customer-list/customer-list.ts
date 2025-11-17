@@ -24,7 +24,6 @@ import { CustomerStatus } from '../../models/customer.interface';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './customer-list.html',
-  styleUrl: './customer-list.scss',
   imports: [
     CommonModule,
     ReactiveFormsModule,
