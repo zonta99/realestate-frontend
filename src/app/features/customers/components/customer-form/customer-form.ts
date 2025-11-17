@@ -267,8 +267,10 @@ import { CustomerStatus } from '../../models';
                       <mat-spinner diameter="20"></mat-spinner>
                       {{ isEditMode ? 'Updating...' : 'Creating...' }}
                     } @else {
-                      <mat-icon>save</mat-icon>
-                      {{ isEditMode ? 'Update Customer' : 'Create Customer' }}
+                      <ng-container>
+                        <mat-icon>save</mat-icon>
+                        {{ isEditMode ? 'Update Customer' : 'Create Customer' }}
+                       </ng-container>
                     }
                   </button>
                 </div>

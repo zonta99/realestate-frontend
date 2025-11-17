@@ -6,11 +6,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatChipsModule } from '@angular/material/chip';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { CustomerFacadeService } from '../../services';
-import { Customer } from '../../models';
 
 @Component({
   selector: 'app-customer-detail',
@@ -384,13 +383,11 @@ export class CustomerDetail implements OnInit, OnDestroy {
   protected readonly customerFacade = inject(CustomerFacadeService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly dialog = inject(MatDialog);
-
   customerId?: number;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      if (params['id']) {
+      if (params['Http failure response for http://localhost:8080/customers?page=0&size=20: 500 OKid']) {
         this.customerId = +params['id'];
         this.customerFacade.loadCustomer(this.customerId);
         this.customerFacade.loadSearchCriteria(this.customerId);

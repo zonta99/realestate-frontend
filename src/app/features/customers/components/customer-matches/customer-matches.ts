@@ -6,7 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chip';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 import { CustomerFacadeService } from '../../services';
 
@@ -84,7 +84,7 @@ import { CustomerFacadeService } from '../../services';
                     <div class="property-details">
                       <div class="detail-item">
                         <mat-icon>attach_money</mat-icon>
-                        <span class="price">\${{ match.price?.toLocaleString() }}</span>
+                        <span class="price">\${{ match.price.toLocaleString() }}</span>
                       </div>
 
                       @if (match.bedrooms) {
