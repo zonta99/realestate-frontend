@@ -22,7 +22,7 @@ import {
 })
 export class CustomerService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/customers`;
+  private apiUrl = `${environment.apiUrl}/api/customers`;
 
   /**
    * Get paginated list of customers
