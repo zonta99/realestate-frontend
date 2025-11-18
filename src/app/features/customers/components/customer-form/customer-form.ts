@@ -1,5 +1,5 @@
 // src/app/features/customers/components/customer-form/customer-form.ts
-import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -434,6 +434,30 @@ export class CustomerForm implements OnInit, OnDestroy {
   isEditMode = false;
   customerId?: number;
 
+  constructor() {
+    // Use effect to watch for customer data changes and patch form
+    effect(() => {
+      const customer = this.customerFacade.selectedCustomer();
+      const searchCriteria = this.customerFacade.searchCriteria();
+
+      if (customer && this.isEditMode && this.customerForm) {
+        this.customerForm.patchValue({
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email,
+          phone: customer.phone,
+          status: customer.status,
+          agentId: customer.agentId,
+          notes: customer.notes
+        });
+      }
+
+      if (searchCriteria && this.searchCriteriaForm) {
+        this.searchCriteriaForm.patchValue(searchCriteria);
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.initializeForms();
 
@@ -443,7 +467,7 @@ export class CustomerForm implements OnInit, OnDestroy {
         this.isEditMode = true;
         this.customerId = +params['id'];
         this.customerFacade.loadCustomer(this.customerId);
-        this.loadCustomerData();
+        this.customerFacade.loadSearchCriteria(this.customerId);
       }
     });
   }
@@ -472,30 +496,6 @@ export class CustomerForm implements OnInit, OnDestroy {
       propertyType: [''],
       mustHaveGarage: [null]
     });
-  }
-
-  loadCustomerData(): void {
-    const customer = this.customerFacade.selectedCustomer();
-    if (customer) {
-      this.customerForm.patchValue({
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        status: customer.status,
-        agentId: customer.agentId,
-        notes: customer.notes
-      });
-
-      // Load search criteria if exists
-      if (this.customerId) {
-        this.customerFacade.loadSearchCriteria(this.customerId);
-        const criteria = this.customerFacade.searchCriteria();
-        if (criteria) {
-          this.searchCriteriaForm.patchValue(criteria);
-        }
-      }
-    }
   }
 
   hasSearchCriteria(): boolean {
