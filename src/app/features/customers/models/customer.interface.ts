@@ -26,6 +26,8 @@ export interface CustomerSearchCriteria {
   maxBathrooms?: number;
   propertyType?: string;
   location?: string;
+  city?: string;
+  mustHaveGarage?: boolean;
   createdDate: string;
   updatedDate: string;
 }
@@ -56,6 +58,8 @@ export interface CreateSearchCriteriaRequest {
   maxBathrooms?: number;
   propertyType?: string;
   location?: string;
+  city?: string;
+  mustHaveGarage?: boolean;
 }
 
 export interface CustomerListParams {
@@ -100,7 +104,24 @@ export enum CustomerStatus {
   INACTIVE = 'INACTIVE',
   LEAD = 'LEAD',
   PROSPECT = 'PROSPECT',
-  CLIENT = 'CLIENT'
+  CLIENT = 'CLIENT',
+  CONVERTED = 'CONVERTED'
+}
+
+export interface PropertyMatch {
+  propertyId: number;
+  title: string;
+  price: number;
+  bedrooms?: number;
+  city?: string;
+  matchScore: number;
+}
+
+export interface CustomerMatchesResponse {
+  customerId: number;
+  customerName: string;
+  matches: PropertyMatch[];
+  totalMatches: number;
 }
 
 export interface ApiResponse<T = any> {

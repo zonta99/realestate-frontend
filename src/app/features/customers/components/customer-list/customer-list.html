@@ -61,7 +61,7 @@
     <mat-card style="margin-bottom: 24px">
       <mat-card-content style="text-align: center; padding: 24px">
         <mat-icon color="warn" style="font-size: 48px; width: 48px; height: 48px">error</mat-icon>
-        <p>{{ error().message || 'Failed to load customers' }}</p>
+        <p>{{ error() || 'Failed to load customers' }}</p>
         <button mat-raised-button color="primary" (click)="retryLoad()">
           <mat-icon>refresh</mat-icon>
           Retry
