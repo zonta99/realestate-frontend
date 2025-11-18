@@ -1,153 +1,237 @@
 // src/app/features/customers/components/customer-detail/customer-detail.ts
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CustomerFacadeService } from '../../services';
 
 @Component({
   selector: 'app-customer-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatToolbarModule,
+    MatChipsModule,
+    MatProgressSpinnerModule
+  ],
   template: `
-    <div class="page-layout">
-      <header class="page-header">
-        <h1 class="mat-headline-4">Customer Details</h1>
-        <div class="header-actions">
-          <button mat-button>
-            <mat-icon>edit</mat-icon>
-            Edit
-          </button>
-          <button mat-button>
-            <mat-icon>home_work</mat-icon>
-            Find Matches
-          </button>
-        </div>
-      </header>
+    <mat-toolbar color="primary" style="display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <span>Customer Details</span>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <button mat-raised-button color="primary" (click)="viewMatches()">
+          <mat-icon>home_work</mat-icon>
+          Find Matches
+        </button>
+        <button mat-raised-button color="accent" (click)="editCustomer()">
+          <mat-icon>edit</mat-icon>
+          Edit
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteCustomer()">
+          <mat-icon>delete</mat-icon>
+          Delete
+        </button>
+      </div>
+    </mat-toolbar>
 
-      <main class="page-content">
-        <mat-card class="content-card">
+    <div style="padding: 24px">
+      @if (customerFacade.loading()) {
+        <mat-card style="text-align: center; padding: 48px">
           <mat-card-content>
-            <p>Customer detail view will be implemented here...</p>
-            <p>This will show customer info and property matches.</p>
+            <mat-spinner diameter="50" style="margin: 0 auto 16px"></mat-spinner>
+            <p>Loading customer details...</p>
           </mat-card-content>
         </mat-card>
-      </main>
+      }
+
+      @if (!customerFacade.loading() && customerFacade.selectedCustomer()) {
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px">
+          <!-- Basic Information Card -->
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Basic Information</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div style="display: grid; gap: 16px">
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Name</div>
+                  <div>{{ customerFacade.selectedCustomer()?.firstName }} {{ customerFacade.selectedCustomer()?.lastName }}</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Email</div>
+                  <div>{{ customerFacade.selectedCustomer()?.email }}</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Phone</div>
+                  <div>{{ customerFacade.selectedCustomer()?.phone }}</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Status</div>
+                  <mat-chip [highlighted]="customerFacade.selectedCustomer()?.status === 'ACTIVE'">
+                    {{ customerFacade.selectedCustomer()?.status }}
+                  </mat-chip>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Assigned Agent</div>
+                  <div>{{ customerFacade.selectedCustomer()?.agentName || 'Unassigned' }}</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Created Date</div>
+                  <div>{{ customerFacade.selectedCustomer()?.createdDate | date:'medium' }}</div>
+                </div>
+
+                <div>
+                  <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Last Updated</div>
+                  <div>{{ customerFacade.selectedCustomer()?.updatedDate | date:'medium' }}</div>
+                </div>
+
+                @if (customerFacade.selectedCustomer()?.notes) {
+                  <div>
+                    <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Notes</div>
+                    <div>{{ customerFacade.selectedCustomer()?.notes }}</div>
+                  </div>
+                }
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Search Criteria Card -->
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Property Search Criteria</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (customerFacade.searchCriteria()) {
+                <div style="display: grid; gap: 16px">
+                  @if (customerFacade.searchCriteria()?.minPrice || customerFacade.searchCriteria()?.maxPrice) {
+                    <div>
+                      <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Price Range</div>
+                      <div>
+                        {{ customerFacade.searchCriteria()?.minPrice ? ('$' + customerFacade.searchCriteria()?.minPrice) : 'Any' }}
+                        -
+                        {{ customerFacade.searchCriteria()?.maxPrice ? ('$' + customerFacade.searchCriteria()?.maxPrice) : 'Any' }}
+                      </div>
+                    </div>
+                  }
+
+                  @if (customerFacade.searchCriteria()?.minBedrooms || customerFacade.searchCriteria()?.maxBedrooms) {
+                    <div>
+                      <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Bedrooms</div>
+                      <div>
+                        {{ customerFacade.searchCriteria()?.minBedrooms || 'Any' }}
+                        -
+                        {{ customerFacade.searchCriteria()?.maxBedrooms || 'Any' }}
+                      </div>
+                    </div>
+                  }
+
+                  @if (customerFacade.searchCriteria()?.city) {
+                    <div>
+                      <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">City</div>
+                      <div>{{ customerFacade.searchCriteria()?.city }}</div>
+                    </div>
+                  }
+
+                  @if (customerFacade.searchCriteria()?.propertyType) {
+                    <div>
+                      <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Property Type</div>
+                      <div>{{ customerFacade.searchCriteria()?.propertyType }}</div>
+                    </div>
+                  }
+
+                  @if (customerFacade.searchCriteria()?.mustHaveGarage !== null && customerFacade.searchCriteria()?.mustHaveGarage !== undefined) {
+                    <div>
+                      <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Garage Required</div>
+                      <div>{{ customerFacade.searchCriteria()?.mustHaveGarage ? 'Yes' : 'No' }}</div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div style="text-align: center; padding: 24px">
+                  <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: rgba(0,0,0,0.26)">search_off</mat-icon>
+                  <p>No search criteria set yet</p>
+                  <button mat-raised-button color="primary" (click)="editCustomer()">
+                    Set Search Criteria
+                  </button>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+      }
+
+      @if (!customerFacade.loading() && !customerFacade.selectedCustomer()) {
+        <mat-card>
+          <mat-card-content style="text-align: center; padding: 48px">
+            <mat-icon style="font-size: 48px; width: 48px; height: 48px; color: rgba(0,0,0,0.26); margin-bottom: 16px">person_off</mat-icon>
+            <h2 style="margin: 0 0 8px">Customer not found</h2>
+            <p>The requested customer could not be found.</p>
+            <button mat-raised-button color="primary" (click)="goBack()">
+              Back to List
+            </button>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
   `,
-  styles: [`
-    /* Modern CSS Grid layout using Material Design 3 tokens */
-    .page-layout {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: var(--mat-sys-spacing-lg);
-      min-height: 100vh;
-      padding: var(--mat-sys-spacing-lg);
-      background: var(--mat-sys-background);
-    }
-
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--mat-sys-spacing-md);
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .page-header h1 {
-      margin: 0;
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-headline-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-headline-medium-font-size);
-      font-weight: var(--mat-sys-typescale-headline-medium-font-weight);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: var(--mat-sys-spacing-sm);
-    }
-
-    .header-actions button {
-      display: flex;
-      align-items: center;
-      gap: var(--mat-sys-spacing-xs);
-      height: 40px;
-      border-radius: var(--mat-sys-shape-corner-medium);
-      font-family: var(--mat-sys-typescale-label-large-font-family-name);
-      font-size: var(--mat-sys-typescale-label-large-font-size);
-      color: var(--mat-sys-on-surface);
-    }
-
-    .page-content {
-      display: flex;
-      flex-direction: column;
-      gap: var(--mat-sys-spacing-md);
-    }
-
-    .content-card {
-      background: var(--mat-sys-surface-container);
-      border-radius: var(--mat-sys-shape-corner-medium);
-      box-shadow: var(--mat-sys-elevation-1);
-    }
-
-    .content-card mat-card-content {
-      padding: var(--mat-sys-spacing-lg);
-      color: var(--mat-sys-on-surface);
-      font-family: var(--mat-sys-typescale-body-medium-font-family-name);
-      font-size: var(--mat-sys-typescale-body-medium-font-size);
-      line-height: var(--mat-sys-typescale-body-medium-line-height);
-    }
-
-    /* Responsive design using container queries */
-    @container (max-width: 768px) {
-      .page-layout {
-        padding: var(--mat-sys-spacing-md);
-        gap: var(--mat-sys-spacing-md);
-      }
-
-      .page-header {
-        flex-direction: column;
-        gap: var(--mat-sys-spacing-md);
-        align-items: stretch;
-      }
-
-      .header-actions {
-        flex-direction: column;
-        width: 100%;
-      }
-
-      .header-actions button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .page-header h1 {
-        text-align: center;
-        font-size: var(--mat-sys-typescale-headline-small-font-size);
-      }
-    }
-
-    /* High contrast mode support */
-    @media (prefers-contrast: more) {
-      .page-header {
-        border: 2px solid var(--mat-sys-outline);
-      }
-
-      .content-card {
-        border: 2px solid var(--mat-sys-outline);
-      }
-    }
-
-    /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
-      .page-layout,
-      .page-header,
-      .content-card {
-        transition: none;
-      }
-    }
-  `]
+  styles: []
 })
-export class CustomerDetail {}
+export class CustomerDetail implements OnInit, OnDestroy {
+  protected readonly customerFacade = inject(CustomerFacadeService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  customerId?: number;
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.customerId = +params['id'];
+        this.customerFacade.loadCustomer(this.customerId);
+        this.customerFacade.loadSearchCriteria(this.customerId);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.customerFacade.clearSelectedCustomer();
+  }
+
+  editCustomer(): void {
+    if (this.customerId) {
+      this.router.navigate(['/customers/edit', this.customerId]);
+    }
+  }
+
+  deleteCustomer(): void {
+    if (this.customerId && confirm('Are you sure you want to delete this customer?')) {
+      this.customerFacade.deleteCustomer(this.customerId);
+    }
+  }
+
+  viewMatches(): void {
+    if (this.customerId) {
+      this.router.navigate(['/customers', this.customerId, 'matches']);
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/customers/list']);
+  }
+}

@@ -1,222 +1,121 @@
 // src/app/features/customers/store/customer.selectors.ts
-import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { CustomerState } from './customer.reducer';
-import { Customer, CustomerStatus } from '../models/customer.interface';
 
-// Feature selector
+import { createSelector, createFeatureSelector } from '@ngrx/store';
+import { CustomerState } from './customer.reducer';
+
+/**
+ * Feature selector for customer state
+ */
 export const selectCustomerState = createFeatureSelector<CustomerState>('customers');
 
-// Basic selectors
-export const selectCustomers = createSelector(
+/**
+ * Select all customers
+ */
+export const selectAllCustomers = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.customers
+  (state) => state.customers
 );
 
+/**
+ * Select selected customer
+ */
 export const selectSelectedCustomer = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.selectedCustomer
+  (state) => state.selectedCustomer
 );
 
-export const selectCustomerSearchCriteria = createSelector(
+/**
+ * Select customer search criteria
+ */
+export const selectSearchCriteria = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.customerSearchCriteria
+  (state) => state.searchCriteria
 );
 
-export const selectPropertyMatches = createSelector(
+/**
+ * Select customer property matches
+ */
+export const selectMatches = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.propertyMatches
+  (state) => state.matches
 );
 
-export const selectFilters = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state?.filters || {}
-);
-
-// Pagination selectors
-export const selectPagination = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => ({
-    currentPage: state?.currentPage || 0,
-    pageSize: state?.pageSize || 20,
-    totalElements: state?.totalElements || 0,
-    totalPages: state?.totalPages || 0
-  })
-);
-
-export const selectCurrentPage = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state.currentPage
-);
-
-export const selectPageSize = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state.pageSize
-);
-
-export const selectTotalElements = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state.totalElements
-);
-
-export const selectTotalPages = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state.totalPages
-);
-
-// Loading state selectors
+/**
+ * Select loading state
+ */
 export const selectLoading = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.loading
+  (state) => state.loading
 );
 
+/**
+ * Select creating state
+ */
 export const selectCreating = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.creating
+  (state) => state.creating
 );
 
+/**
+ * Select updating state
+ */
 export const selectUpdating = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.updating
+  (state) => state.updating
 );
 
+/**
+ * Select deleting state
+ */
 export const selectDeleting = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.deleting
+  (state) => state.deleting
 );
 
-export const selectLoadingCriteria = createSelector(
-  selectCustomerState,
-  (state: CustomerState) => state.loadingCriteria
-);
-
+/**
+ * Select loading matches state
+ */
 export const selectLoadingMatches = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.loadingMatches
+  (state) => state.loadingMatches
 );
 
-export const selectAnyLoading = createSelector(
-  selectCustomerState,
-  (state: CustomerState) =>
-    state.loading || state.creating || state.updating ||
-    state.deleting || state.loadingCriteria || state.loadingMatches
-);
-
-// Error selector
+/**
+ * Select error
+ */
 export const selectError = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.error
+  (state) => state.error
 );
 
-export const selectLastOperation = createSelector(
+/**
+ * Select total elements (for pagination)
+ */
+export const selectTotalElements = createSelector(
   selectCustomerState,
-  (state: CustomerState) => state.lastOperation
+  (state) => state.totalElements
 );
 
-// Computed selectors
-export const selectCustomerById = (id: number) => createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.find(customer => customer.id === id)
+/**
+ * Select total pages (for pagination)
+ */
+export const selectTotalPages = createSelector(
+  selectCustomerState,
+  (state) => state.totalPages
 );
 
-export const selectCustomersByStatus = (status: CustomerStatus) => createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.status === status)
+/**
+ * Select current page
+ */
+export const selectCurrentPage = createSelector(
+  selectCustomerState,
+  (state) => state.currentPage
 );
 
-export const selectCustomersByAgent = (agentId: number) => createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.agentId === agentId)
-);
-
-export const selectActiveCustomers = createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.status === CustomerStatus.ACTIVE)
-);
-
-export const selectLeads = createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.status === CustomerStatus.LEAD)
-);
-
-export const selectProspects = createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.status === CustomerStatus.PROSPECT)
-);
-
-export const selectClients = createSelector(
-  selectCustomers,
-  (customers: Customer[]) => customers.filter(customer => customer.status === CustomerStatus.CLIENT)
-);
-
-// Customer search criteria selectors
-export const selectSearchCriteriaByCustomerId = (customerId: number) => createSelector(
-  selectCustomerSearchCriteria,
-  (criteria) => criteria[customerId] || []
-);
-
-// Property matches selectors
-export const selectPropertyMatchesByCustomerId = (customerId: number) => createSelector(
-  selectPropertyMatches,
-  (matches) => matches[customerId] || []
-);
-
-// Statistics selectors
-export const selectCustomerStatistics = createSelector(
-  selectCustomers,
-  (customers: Customer[]) => {
-    const total = customers.length;
-    const active = customers.filter(c => c.status === CustomerStatus.ACTIVE).length;
-    const inactive = customers.filter(c => c.status === CustomerStatus.INACTIVE).length;
-    const leads = customers.filter(c => c.status === CustomerStatus.LEAD).length;
-    const prospects = customers.filter(c => c.status === CustomerStatus.PROSPECT).length;
-    const clients = customers.filter(c => c.status === CustomerStatus.CLIENT).length;
-
-    return {
-      total,
-      active,
-      inactive,
-      leads,
-      prospects,
-      clients
-    };
-  }
-);
-
-// Search and filter helpers
-export const selectHasFilters = createSelector(
-  selectFilters,
-  (filters) => Object.keys(filters).length > 0
-);
-
-// UI state selectors
-export const selectCanLoadMore = createSelector(
-  selectCurrentPage,
-  selectTotalPages,
-  (currentPage, totalPages) => currentPage < totalPages - 1
-);
-
-export const selectIsFirstPage = createSelector(
-  selectCurrentPage,
-  (currentPage) => currentPage === 0
-);
-
-export const selectIsLastPage = createSelector(
-  selectCurrentPage,
-  selectTotalPages,
-  (currentPage, totalPages) => currentPage === totalPages - 1
-);
-
-export const selectPageInfo = createSelector(
-  selectCurrentPage,
-  selectPageSize,
-  selectTotalElements,
-  (currentPage, pageSize, totalElements) => {
-    const startItem = currentPage * pageSize + 1;
-    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
-    return {
-      startItem: totalElements > 0 ? startItem : 0,
-      endItem,
-      totalElements
-    };
-  }
-);
+/**
+ * Select customer by ID
+ */
+export const selectCustomerById = (id: number) =>
+  createSelector(selectAllCustomers, (customers) =>
+    customers.find(customer => customer.id === id)
+  );

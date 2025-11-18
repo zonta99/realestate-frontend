@@ -24,7 +24,6 @@ import { CustomerStatus } from '../../models/customer.interface';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './customer-list.html',
-  styleUrl: './customer-list.scss',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -51,11 +50,13 @@ export class CustomerListComponent implements OnInit {
   // Signals for reactive state
   customers = this.customerFacade.customers;
   loading = this.customerFacade.loading;
-  pagination = this.customerFacade.pagination;
-  filters = this.customerFacade.filters;
   error = this.customerFacade.error;
-  statistics = this.customerFacade.statistics;
-  pageInfo = this.customerFacade.pageInfo;
+  pagination = () => ({
+    totalElements: this.customerFacade.totalElements(),
+    totalPages: this.customerFacade.totalPages(),
+    currentPage: this.customerFacade.currentPage(),
+    pageSize: 20
+  });
 
   // Table columns
   displayedColumns = ['name', 'email', 'phone', 'status', 'agent', 'actions'];
@@ -75,37 +76,29 @@ export class CustomerListComponent implements OnInit {
   }
 
   loadCustomers(): void {
-    const currentFilters = this.filters();
-    this.customerFacade.loadCustomers({
-      ...currentFilters,
-      page: this.pagination().currentPage,
-      size: this.pagination().pageSize
-    });
+    const statusFilter = this.filtersForm.value.status;
+    this.customerFacade.loadCustomers(
+      this.pagination().currentPage,
+      this.pagination().pageSize,
+      statusFilter || undefined
+    );
   }
 
   applyFilters(): void {
-    const formValue = this.filtersForm.getRawValue();
-    const filterParams: any = {};
-
-    if (formValue.search) filterParams.search = formValue.search;
-    if (formValue.status) filterParams.status = formValue.status as CustomerStatus;
-
-    this.customerFacade.setFilters(filterParams);
-    this.customerFacade.setCurrentPage(0); // Reset to first page
     this.loadCustomers();
   }
 
   clearFilters(): void {
     this.filtersForm.reset();
-    this.customerFacade.clearFilters();
-    this.customerFacade.setCurrentPage(0);
     this.loadCustomers();
   }
 
   onPageChange(event: PageEvent): void {
-    this.customerFacade.setCurrentPage(event.pageIndex);
-    this.customerFacade.setPageSize(event.pageSize);
-    this.loadCustomers();
+    this.customerFacade.loadCustomers(
+      event.pageIndex,
+      event.pageSize,
+      this.filtersForm.value.status || undefined
+    );
   }
 
   addCustomer(): void {
@@ -131,7 +124,6 @@ export class CustomerListComponent implements OnInit {
   }
 
   retryLoad(): void {
-    this.customerFacade.clearError();
     this.loadCustomers();
   }
 

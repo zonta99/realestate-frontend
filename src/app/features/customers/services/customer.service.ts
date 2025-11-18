@@ -1,4 +1,5 @@
 // src/app/features/customers/services/customer.service.ts
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,66 +8,109 @@ import {
   Customer,
   CreateCustomerRequest,
   UpdateCustomerRequest,
-  CustomerPageResponse,
-  CustomerListParams,
   CustomerSearchCriteria,
-  CreateSearchCriteriaRequest,
+  CustomerMatchesResponse,
+  CustomerPageResponse,
   ApiResponse
-} from '../models/customer.interface';
+} from '../models';
 
+/**
+ * Service for customer-related API operations
+ */
 @Injectable({
   providedIn: 'root'
 })
 export class CustomerService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.apiUrl}/api/customers`;
+  private apiUrl = `${environment.apiUrl}/api/customers`;
 
-  // Get all customers with pagination and filtering
-  getCustomers(params?: CustomerListParams): Observable<CustomerPageResponse> {
-    let httpParams = new HttpParams();
+  /**
+   * Get paginated list of customers
+   * @param page Page number (default: 0)
+   * @param size Page size (default: 20)
+   * @param status Optional status filter
+   */
+  getCustomers(
+    page: number = 0,
+    size: number = 20,
+    status?: string
+  ): Observable<CustomerPageResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
 
-    if (params) {
-      if (params.status) httpParams = httpParams.set('status', params.status);
-      if (params.search) httpParams = httpParams.set('search', params.search);
-      if (params.page !== undefined) httpParams = httpParams.set('page', params.page.toString());
-      if (params.size !== undefined) httpParams = httpParams.set('size', params.size.toString());
-      if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (status) {
+      params = params.set('status', status);
     }
 
-    return this.http.get<CustomerPageResponse>(this.baseUrl, { params: httpParams });
+    return this.http.get<CustomerPageResponse>(this.apiUrl, { params });
   }
 
-  // Get customer by ID
+  /**
+   * Get a single customer by ID
+   * @param id Customer ID
+   */
   getCustomerById(id: number): Observable<Customer> {
-    return this.http.get<Customer>(`${this.baseUrl}/${id}`);
+    return this.http.get<Customer>(`${this.apiUrl}/${id}`);
   }
 
-  // Create customer
+  /**
+   * Create a new customer
+   * @param customer Customer data
+   */
   createCustomer(customer: CreateCustomerRequest): Observable<Customer> {
-    return this.http.post<Customer>(this.baseUrl, customer);
+    return this.http.post<Customer>(this.apiUrl, customer);
   }
 
-  // Update customer
+  /**
+   * Update an existing customer
+   * @param id Customer ID
+   * @param customer Updated customer data
+   */
   updateCustomer(id: number, customer: UpdateCustomerRequest): Observable<Customer> {
-    return this.http.put<Customer>(`${this.baseUrl}/${id}`, customer);
+    return this.http.put<Customer>(`${this.apiUrl}/${id}`, customer);
   }
 
-  // Delete customer
+  /**
+   * Delete a customer
+   * @param id Customer ID
+   */
   deleteCustomer(id: number): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.baseUrl}/${id}`);
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/${id}`);
   }
 
-  // Search criteria methods
-  getSearchCriteria(customerId: number): Observable<CustomerSearchCriteria[]> {
-    return this.http.get<CustomerSearchCriteria[]>(`${this.baseUrl}/${customerId}/search-criteria`);
+  /**
+   * Set search criteria for a customer
+   * @param customerId Customer ID
+   * @param criteria Search criteria
+   */
+  setSearchCriteria(
+    customerId: number,
+    criteria: CustomerSearchCriteria
+  ): Observable<CustomerSearchCriteria> {
+    return this.http.post<CustomerSearchCriteria>(
+      `${this.apiUrl}/${customerId}/search-criteria`,
+      criteria
+    );
   }
 
-  createSearchCriteria(customerId: number, criteria: CreateSearchCriteriaRequest): Observable<CustomerSearchCriteria> {
-    return this.http.post<CustomerSearchCriteria>(`${this.baseUrl}/${customerId}/search-criteria`, criteria);
+  /**
+   * Get search criteria for a customer
+   * @param customerId Customer ID
+   */
+  getSearchCriteria(customerId: number): Observable<CustomerSearchCriteria> {
+    return this.http.get<CustomerSearchCriteria>(
+      `${this.apiUrl}/${customerId}/search-criteria`
+    );
   }
 
-  // Get property matches for customer
-  getPropertyMatches(customerId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/${customerId}/matches`);
+  /**
+   * Get property matches for a customer based on their search criteria
+   * @param customerId Customer ID
+   */
+  getMatches(customerId: number): Observable<CustomerMatchesResponse> {
+    return this.http.get<CustomerMatchesResponse>(
+      `${this.apiUrl}/${customerId}/matches`
+    );
   }
 }
