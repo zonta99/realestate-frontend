@@ -94,7 +94,7 @@ import { CustomerFacadeService } from '../../services';
                   <div class="info-item">
                     <span class="label">Assigned Agent</span>
                     <span class="value">
-                      {{ customerFacade.selectedCustomer()?.assignedAgentName || 'Unassigned' }}
+                      {{ customerFacade.selectedCustomer()?.agentName || 'Unassigned' }}
                     </span>
                   </div>
 
@@ -387,7 +387,7 @@ export class CustomerDetail implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
-      if (params['Http failure response for http://localhost:8080/customers?page=0&size=20: 500 OKid']) {
+      if (params['id']) {
         this.customerId = +params['id'];
         this.customerFacade.loadCustomer(this.customerId);
         this.customerFacade.loadSearchCriteria(this.customerId);

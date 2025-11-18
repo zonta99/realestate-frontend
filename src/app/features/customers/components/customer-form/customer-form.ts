@@ -105,7 +105,7 @@ import { CustomerStatus } from '../../models';
 
                     <mat-form-field appearance="outline">
                       <mat-label>Assigned Agent ID</mat-label>
-                      <input matInput type="number" formControlName="assignedAgentId">
+                      <input matInput type="number" formControlName="agentId">
                       <mat-hint>Optional - leave empty for unassigned</mat-hint>
                     </mat-form-field>
                   </div>
@@ -459,7 +459,7 @@ export class CustomerForm implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
       status: [CustomerStatus.LEAD, Validators.required],
-      assignedAgentId: [null],
+      agentId: [null],
       notes: ['']
     });
 
@@ -483,7 +483,7 @@ export class CustomerForm implements OnInit, OnDestroy {
         email: customer.email,
         phone: customer.phone,
         status: customer.status,
-        assignedAgentId: customer.assignedAgentId,
+        agentId: customer.agentId,
         notes: customer.notes
       });
 
@@ -518,7 +518,7 @@ export class CustomerForm implements OnInit, OnDestroy {
 
     const customerData = {
       ...this.customerForm.value,
-      assignedAgentId: this.customerForm.value.assignedAgentId || undefined
+      agentId: this.customerForm.value.agentId || undefined
     };
 
     if (this.isEditMode && this.customerId) {
