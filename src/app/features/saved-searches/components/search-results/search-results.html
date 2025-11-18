@@ -1,0 +1,105 @@
+<!-- src/app/features/saved-searches/components/search-results/search-results.html -->
+
+<div class="search-results-container">
+  <!-- Header -->
+  <div class="header">
+    <button mat-icon-button (click)="onBackToSearches()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-content">
+      <h1>{{ savedSearch()?.name || 'Search Results' }}</h1>
+      <p class="description" *ngIf="savedSearch()?.description">{{ savedSearch()?.description }}</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="onEditSearch()" *ngIf="savedSearch()">
+      <mat-icon>edit</mat-icon>
+      Edit Search
+    </button>
+  </div>
+
+  <!-- Search Info -->
+  <div class="search-info" *ngIf="savedSearch()">
+    <mat-chip-set>
+      <mat-chip>
+        <mat-icon>filter_list</mat-icon>
+        {{ getFilterCount() }} {{ getFilterCount() === 1 ? 'filter' : 'filters' }}
+      </mat-chip>
+      <mat-chip *ngIf="!executing()">
+        <mat-icon>apartment</mat-icon>
+        {{ totalElements() }} {{ totalElements() === 1 ? 'property' : 'properties' }} found
+      </mat-chip>
+    </mat-chip-set>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="executing()">
+    <mat-spinner></mat-spinner>
+    <p>Searching properties...</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results-content" *ngIf="!executing()">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="properties().length === 0">
+      <mat-icon>search_off</mat-icon>
+      <h2>No properties found</h2>
+      <p>Try adjusting your search filters to see more results</p>
+      <button mat-raised-button color="primary" (click)="onEditSearch()">
+        <mat-icon>edit</mat-icon>
+        Edit Search Filters
+      </button>
+    </div>
+
+    <!-- Property Grid -->
+    <div class="property-grid" *ngIf="properties().length > 0">
+      <mat-card *ngFor="let property of properties()" class="property-card">
+        <mat-card-header>
+          <mat-card-title>{{ property.title }}</mat-card-title>
+          <mat-card-subtitle>
+            <span class="price">{{ getFormattedPrice(property.price) }}</span>
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="description">{{ property.description }}</p>
+
+          <div class="property-details">
+            <div class="detail-item">
+              <mat-icon>person</mat-icon>
+              <span>{{ property.agentName }}</span>
+            </div>
+            <div class="detail-item">
+              <mat-icon>calendar_today</mat-icon>
+              <span>{{ property.createdDate | date: 'mediumDate' }}</span>
+            </div>
+          </div>
+
+          <div class="status-chip">
+            <mat-chip-set>
+              <mat-chip [color]="getStatusColor(property.status)">
+                {{ property.status }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="onViewProperty(property)">
+            <mat-icon>visibility</mat-icon>
+            View Details
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator
+      *ngIf="properties().length > 0"
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

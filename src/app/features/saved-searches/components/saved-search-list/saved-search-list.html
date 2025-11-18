@@ -1,0 +1,70 @@
+<!-- src/app/features/saved-searches/components/saved-search-list/saved-search-list.html -->
+
+<div class="saved-search-list-container">
+  <div class="header">
+    <h1>My Saved Searches</h1>
+    <button mat-raised-button color="primary" (click)="onCreateNew()">
+      <mat-icon>add</mat-icon>
+      Create New Search
+    </button>
+  </div>
+
+  <div class="content" *ngIf="!loading(); else loadingTemplate">
+    <div class="empty-state" *ngIf="searches().length === 0">
+      <mat-icon>search_off</mat-icon>
+      <h2>No saved searches yet</h2>
+      <p>Create your first property search to get started</p>
+      <button mat-raised-button color="primary" (click)="onCreateNew()">
+        <mat-icon>add</mat-icon>
+        Create Search
+      </button>
+    </div>
+
+    <div class="search-grid" *ngIf="searches().length > 0">
+      <mat-card *ngFor="let search of searches()" class="search-card">
+        <mat-card-header>
+          <mat-card-title>{{ search.name }}</mat-card-title>
+          <mat-card-subtitle>
+            <span class="date">Created: {{ getFormattedDate(search.createdDate) }}</span>
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="description" *ngIf="search.description">{{ search.description }}</p>
+          <p class="description empty" *ngIf="!search.description">No description</p>
+
+          <div class="filter-info">
+            <mat-chip-set>
+              <mat-chip>
+                <mat-icon>filter_list</mat-icon>
+                {{ getFilterSummary(search) }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="onExecute(search)">
+            <mat-icon>search</mat-icon>
+            Search
+          </button>
+          <button mat-button (click)="onEdit(search)">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          <button mat-button color="warn" (click)="onDelete(search)" [disabled]="deleting()">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading saved searches...</p>
+    </div>
+  </ng-template>
+</div>

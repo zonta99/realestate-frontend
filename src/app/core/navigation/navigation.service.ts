@@ -90,6 +90,15 @@ export class NavigationService {
       permissionCheck: () => this.canManageCustomers()
     },
     {
+      id: 'searches',
+      label: 'My Searches',
+      route: '/searches',
+      icon: 'saved_search',
+      order: 3.5,
+      tooltip: 'Manage saved property searches',
+      permissionCheck: () => this.isAuthenticated()
+    },
+    {
       id: 'users',
       label: 'Team',
       route: '/users',
@@ -168,6 +177,8 @@ export class NavigationService {
         return this.canCreateProperties();
       case 'customers':
         return this.canManageCustomers();
+      case 'searches':
+        return this.isAuthenticated();
       case 'users':
         return this.canManageUsers();
       default:
@@ -190,6 +201,8 @@ export class NavigationService {
         return canCreateProps;
       case 'customers':
         return canManageCustomers;
+      case 'searches':
+        return true; // All authenticated users
       case 'users':
         return canManageUsers;
       default:
