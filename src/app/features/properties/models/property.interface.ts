@@ -154,6 +154,24 @@ export interface CreateAttributeOptionRequest {
   displayOrder?: number;
 }
 
+export interface UpdateAttributeRequest {
+  name: string;
+  dataType: PropertyAttributeDataType;
+  isRequired: boolean;
+  isSearchable: boolean;
+  category: PropertyCategory;
+  displayOrder?: number;
+}
+
+export interface UpdateAttributeOptionRequest {
+  optionValue: string;
+  displayOrder?: number;
+}
+
+export interface ReorderAttributesRequest {
+  attributeIds: number[];
+}
+
 export interface SetAttributeValueRequest {
   attributeId: number;
   value: any;

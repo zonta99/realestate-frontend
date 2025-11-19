@@ -11,6 +11,12 @@ import {
   CustomerSearchCriteria,
   CustomerMatchesResponse,
   CustomerPageResponse,
+  CustomerNote,
+  CreateCustomerNoteRequest,
+  CustomerInteraction,
+  CreateCustomerInteractionRequest,
+  CustomerSearchParams,
+  CustomerStatus,
   ApiResponse
 } from '../models';
 
@@ -112,5 +118,97 @@ export class CustomerService {
     return this.http.get<CustomerMatchesResponse>(
       `${this.apiUrl}/${customerId}/matches`
     );
+  }
+
+  // ============================================
+  // CUSTOMER NOTES ENDPOINTS
+  // ============================================
+
+  /**
+   * Get all notes for a customer
+   * @param customerId Customer ID
+   */
+  getCustomerNotes(customerId: number): Observable<CustomerNote[]> {
+    return this.http.get<CustomerNote[]>(`${this.apiUrl}/${customerId}/notes`);
+  }
+
+  /**
+   * Add a note to a customer
+   * @param customerId Customer ID
+   * @param note Note content
+   */
+  addCustomerNote(customerId: number, note: CreateCustomerNoteRequest): Observable<CustomerNote> {
+    return this.http.post<CustomerNote>(`${this.apiUrl}/${customerId}/notes`, note);
+  }
+
+  /**
+   * Delete a customer note
+   * @param customerId Customer ID
+   * @param noteId Note ID
+   */
+  deleteCustomerNote(customerId: number, noteId: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/${customerId}/notes/${noteId}`);
+  }
+
+  // ============================================
+  // CUSTOMER INTERACTIONS ENDPOINTS
+  // ============================================
+
+  /**
+   * Get all interactions for a customer
+   * @param customerId Customer ID
+   */
+  getCustomerInteractions(customerId: number): Observable<CustomerInteraction[]> {
+    return this.http.get<CustomerInteraction[]>(`${this.apiUrl}/${customerId}/interactions`);
+  }
+
+  /**
+   * Add an interaction to a customer
+   * @param customerId Customer ID
+   * @param interaction Interaction data
+   */
+  addCustomerInteraction(customerId: number, interaction: CreateCustomerInteractionRequest): Observable<CustomerInteraction> {
+    return this.http.post<CustomerInteraction>(`${this.apiUrl}/${customerId}/interactions`, interaction);
+  }
+
+  /**
+   * Delete a customer interaction
+   * @param customerId Customer ID
+   * @param interactionId Interaction ID
+   */
+  deleteCustomerInteraction(customerId: number, interactionId: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/${customerId}/interactions/${interactionId}`);
+  }
+
+  // ============================================
+  // CUSTOMER SEARCH ENDPOINTS
+  // ============================================
+
+  /**
+   * Search customers by criteria
+   * @param params Search parameters (name, status, phone, email)
+   */
+  searchCustomers(params: CustomerSearchParams): Observable<Customer[]> {
+    let httpParams = new HttpParams();
+
+    if (params.name) httpParams = httpParams.set('name', params.name);
+    if (params.status) httpParams = httpParams.set('status', params.status);
+    if (params.phone) httpParams = httpParams.set('phone', params.phone);
+    if (params.email) httpParams = httpParams.set('email', params.email);
+
+    return this.http.get<Customer[]>(`${this.apiUrl}/search`, { params: httpParams });
+  }
+
+  /**
+   * Get customers by budget range
+   * @param minBudget Minimum budget
+   * @param maxBudget Maximum budget
+   */
+  getCustomersByBudgetRange(minBudget: number, maxBudget: number): Observable<Customer[]> {
+    const params = new HttpParams()
+      .set('minBudget', minBudget.toString())
+      .set('maxBudget', maxBudget.toString());
+
+    return this.http.get<Customer[]>(`${this.apiUrl}/budget-range`, { params });
   }
 }

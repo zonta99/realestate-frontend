@@ -7,7 +7,10 @@ import {
   PropertyAttribute,
   PropertyValue,
   CreateAttributeRequest,
+  UpdateAttributeRequest,
   CreateAttributeOptionRequest,
+  UpdateAttributeOptionRequest,
+  ReorderAttributesRequest,
   SetAttributeValueRequest,
   PropertyCategory,
   ApiResponse
@@ -41,8 +44,29 @@ export class AttributeService {
     return this.http.post<ApiResponse<PropertyAttribute>>(`${this.apiUrl}/property-attributes`, request);
   }
 
+  updateAttribute(id: number, request: UpdateAttributeRequest): Observable<PropertyAttribute> {
+    return this.http.put<PropertyAttribute>(`${this.apiUrl}/property-attributes/${id}`, request);
+  }
+
+  deleteAttribute(id: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/property-attributes/${id}`);
+  }
+
   createAttributeOption(attributeId: number, request: CreateAttributeOptionRequest): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${this.apiUrl}/property-attributes/${attributeId}/options`, request);
+  }
+
+  updateAttributeOption(attributeId: number, optionId: number, request: UpdateAttributeOptionRequest): Observable<ApiResponse> {
+    return this.http.put<ApiResponse>(`${this.apiUrl}/property-attributes/${attributeId}/options/${optionId}`, request);
+  }
+
+  deleteAttributeOption(optionId: number): Observable<ApiResponse> {
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/property-attributes/options/${optionId}`);
+  }
+
+  reorderAttributes(category: PropertyCategory, attributeIds: number[]): Observable<ApiResponse> {
+    const request: ReorderAttributesRequest = { attributeIds };
+    return this.http.put<ApiResponse>(`${this.apiUrl}/property-attributes/category/${category}/reorder`, request);
   }
 
   // Property Attribute Values APIs

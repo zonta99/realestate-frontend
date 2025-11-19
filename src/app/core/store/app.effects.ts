@@ -3,10 +3,12 @@ import { AuthEffects } from '../auth/store';
 import { PropertyEffects } from '../../features/properties/store/property.effects';
 import { CustomerEffects } from '../../features/customers/store/customer.effects';
 import { SavedSearchEffects } from '../../features/saved-searches/store/saved-search.effects';
+import { UserEffects } from '../../features/users/store/user.effects';
 
 export const appEffects = [
   AuthEffects,
   PropertyEffects,
   CustomerEffects,
   SavedSearchEffects,
+  UserEffects,
 ];

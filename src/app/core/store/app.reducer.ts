@@ -4,12 +4,14 @@ import { authReducer, AuthState } from '../auth/store';
 import { propertyReducer, PropertyState } from '../../features/properties/store/property.reducer';
 import { customerReducer, CustomerState } from '../../features/customers/store/customer.reducer';
 import { savedSearchReducer, SavedSearchState } from '../../features/saved-searches/store/saved-search.reducer';
+import { userReducer, UserState } from '../../features/users/store/user.reducer';
 
 export interface AppState {
   auth: AuthState;
   properties: PropertyState;
   customers: CustomerState;
   savedSearches: SavedSearchState;
+  users: UserState;
 }
 
 export const appReducers: ActionReducerMap<AppState> = {
@@ -17,4 +19,5 @@ export const appReducers: ActionReducerMap<AppState> = {
   properties: propertyReducer,
   customers: customerReducer,
   savedSearches: savedSearchReducer,
+  users: userReducer,
 };
