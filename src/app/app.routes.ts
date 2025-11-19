@@ -74,6 +74,15 @@ export const routes: Routes = [
         .then(m => m.Profile)
   },
 
+  // Saved Searches (all authenticated users)
+  {
+    path: 'searches',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/saved-searches/saved-searches.routes')
+        .then(m => m.savedSearchRoutes)
+  },
+
   // Error pages
   {
     path: 'unauthorized',

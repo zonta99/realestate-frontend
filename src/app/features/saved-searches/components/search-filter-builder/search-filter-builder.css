@@ -1,0 +1,71 @@
+/* src/app/features/saved-searches/components/search-filter-builder/search-filter-builder.css */
+
+.filter-builder {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.filter-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.attribute-select {
+  flex: 1;
+  min-width: 200px;
+}
+
+.value-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.value-input-wide {
+  flex: 2;
+  min-width: 250px;
+}
+
+.remove-btn {
+  margin-top: 8px;
+}
+
+.validation-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: #fff3e0;
+  border-radius: 4px;
+  color: #e65100;
+  font-size: 0.875rem;
+}
+
+.validation-error mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .filter-row {
+    flex-direction: column;
+  }
+
+  .attribute-select,
+  .value-input,
+  .value-input-wide {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .remove-btn {
+    align-self: flex-end;
+  }
+}

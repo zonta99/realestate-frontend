@@ -1,0 +1,88 @@
+<!-- src/app/features/saved-searches/components/search-filter-builder/search-filter-builder.html -->
+
+<div class="filter-builder" [formGroup]="filterForm">
+  <div class="filter-row">
+    <!-- Attribute Selection -->
+    <mat-form-field appearance="outline" class="attribute-select">
+      <mat-label>Select Attribute</mat-label>
+      <mat-select formControlName="attributeId" required>
+        <mat-option *ngFor="let attr of getAvailableAttributes()" [value]="attr.id">
+          {{ attr.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- NUMBER Filter -->
+    <ng-container *ngIf="selectedAttribute() && selectedAttribute()!.dataType === DataType.NUMBER">
+      <mat-form-field appearance="outline" class="value-input">
+        <mat-label>Min Value</mat-label>
+        <input matInput type="number" formControlName="minValue" placeholder="Minimum">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="value-input">
+        <mat-label>Max Value</mat-label>
+        <input matInput type="number" formControlName="maxValue" placeholder="Maximum">
+      </mat-form-field>
+    </ng-container>
+
+    <!-- DATE Filter -->
+    <ng-container *ngIf="selectedAttribute() && selectedAttribute()!.dataType === DataType.DATE">
+      <mat-form-field appearance="outline" class="value-input">
+        <mat-label>Start Date</mat-label>
+        <input matInput [matDatepicker]="startPicker" formControlName="minValue" placeholder="From">
+        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="value-input">
+        <mat-label>End Date</mat-label>
+        <input matInput [matDatepicker]="endPicker" formControlName="maxValue" placeholder="To">
+        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- SINGLE_SELECT and MULTI_SELECT Filter -->
+    <ng-container *ngIf="selectedAttribute() && (selectedAttribute()!.dataType === DataType.SINGLE_SELECT || selectedAttribute()!.dataType === DataType.MULTI_SELECT)">
+      <mat-form-field appearance="outline" class="value-input-wide">
+        <mat-label>Select Options</mat-label>
+        <mat-select formControlName="selectedValues" multiple>
+          <mat-option *ngFor="let option of getAttributeOptions()" [value]="option">
+            {{ option }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Select one or more options</mat-hint>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- TEXT Filter -->
+    <ng-container *ngIf="selectedAttribute() && selectedAttribute()!.dataType === DataType.TEXT">
+      <mat-form-field appearance="outline" class="value-input-wide">
+        <mat-label>Search Text</mat-label>
+        <input matInput formControlName="textValue" placeholder="Contains text...">
+        <mat-hint>Property must contain this text</mat-hint>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- BOOLEAN Filter -->
+    <ng-container *ngIf="selectedAttribute() && selectedAttribute()!.dataType === DataType.BOOLEAN">
+      <mat-form-field appearance="outline" class="value-input">
+        <mat-label>Value</mat-label>
+        <mat-select formControlName="booleanValue" required>
+          <mat-option [value]="true">Yes</mat-option>
+          <mat-option [value]="false">No</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+
+    <!-- Remove Button -->
+    <button mat-icon-button color="warn" type="button" (click)="onRemove()" class="remove-btn">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+
+  <div class="validation-error" *ngIf="selectedAttribute() && !isValid()">
+    <mat-icon>warning</mat-icon>
+    <span>Please provide a valid filter value</span>
+  </div>
+</div>

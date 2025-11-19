@@ -1,0 +1,90 @@
+<!-- src/app/features/saved-searches/components/saved-search-form/saved-search-form.html -->
+
+<div class="saved-search-form-container">
+  <div class="header">
+    <h1>{{ isEditMode() ? 'Edit Search' : 'Create New Search' }}</h1>
+  </div>
+
+  <div class="content" *ngIf="!loading(); else loadingTemplate">
+    <mat-card>
+      <mat-card-content>
+        <form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+          <!-- Basic Information -->
+          <div class="form-section">
+            <h2>Basic Information</h2>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Search Name</mat-label>
+              <input matInput formControlName="name" placeholder="e.g., Downtown Condos" required>
+              <mat-hint>Give your search a descriptive name</mat-hint>
+              <mat-error *ngIf="searchForm.get('name')?.hasError('required')">
+                Name is required
+              </mat-error>
+              <mat-error *ngIf="searchForm.get('name')?.hasError('maxlength')">
+                Name must be 100 characters or less
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (Optional)</mat-label>
+              <textarea matInput formControlName="description" rows="3"
+                        placeholder="e.g., 2-3 bedroom condos in downtown area under 500k"></textarea>
+              <mat-hint>Optional description to help you remember this search</mat-hint>
+              <mat-error *ngIf="searchForm.get('description')?.hasError('maxlength')">
+                Description must be 500 characters or less
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Search Filters -->
+          <div class="form-section">
+            <div class="section-header">
+              <h2>Search Filters</h2>
+              <button mat-raised-button type="button" color="accent" (click)="onAddFilter()">
+                <mat-icon>add</mat-icon>
+                Add Filter
+              </button>
+            </div>
+
+            <div class="filters-container" *ngIf="getFilterCount() > 0; else noFiltersTemplate">
+              <app-search-filter-builder
+                *ngFor="let filter of filters(); let i = index"
+                [attributes]="attributes()"
+                [existingFilter]="filter"
+                (filterChange)="onFilterChange(i, $event)"
+                (remove)="onRemoveFilter(i)">
+              </app-search-filter-builder>
+            </div>
+
+            <ng-template #noFiltersTemplate>
+              <div class="empty-filters">
+                <mat-icon>filter_alt_off</mat-icon>
+                <p>No filters added yet</p>
+                <p class="hint">Click "Add Filter" to start building your search</p>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button mat-button type="button" (click)="onCancel()" [disabled]="saving()">
+              Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="saving() || searchForm.invalid || getFilterCount() === 0">
+              <mat-icon *ngIf="!saving()">{{ isEditMode() ? 'save' : 'add' }}</mat-icon>
+              <mat-spinner *ngIf="saving()" diameter="20"></mat-spinner>
+              {{ saving() ? 'Saving...' : (isEditMode() ? 'Update Search' : 'Create Search') }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading...</p>
+    </div>
+  </ng-template>
+</div>
