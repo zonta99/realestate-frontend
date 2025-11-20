@@ -13,8 +13,10 @@ import {
   CustomerPageResponse,
   CustomerNote,
   CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
   CustomerInteraction,
   CreateCustomerInteractionRequest,
+  UpdateCustomerInteractionRequest,
   CustomerSearchParams,
   CustomerStatus,
   ApiResponse
@@ -75,6 +77,16 @@ export class CustomerService {
    */
   updateCustomer(id: number, customer: UpdateCustomerRequest): Observable<Customer> {
     return this.http.put<Customer>(`${this.apiUrl}/${id}`, customer);
+  }
+
+  /**
+   * Update customer status
+   * @param id Customer ID
+   * @param status New status
+   */
+  updateCustomerStatus(id: number, status: CustomerStatus): Observable<ApiResponse> {
+    const params = new HttpParams().set('status', status);
+    return this.http.patch<ApiResponse>(`${this.apiUrl}/${id}/status`, null, { params });
   }
 
   /**
@@ -142,6 +154,16 @@ export class CustomerService {
   }
 
   /**
+   * Update a customer note
+   * @param customerId Customer ID
+   * @param noteId Note ID
+   * @param note Updated note content
+   */
+  updateCustomerNote(customerId: number, noteId: number, note: UpdateCustomerNoteRequest): Observable<CustomerNote> {
+    return this.http.put<CustomerNote>(`${this.apiUrl}/${customerId}/notes/${noteId}`, note);
+  }
+
+  /**
    * Delete a customer note
    * @param customerId Customer ID
    * @param noteId Note ID
@@ -172,6 +194,16 @@ export class CustomerService {
   }
 
   /**
+   * Update a customer interaction
+   * @param customerId Customer ID
+   * @param interactionId Interaction ID
+   * @param interaction Updated interaction data
+   */
+  updateCustomerInteraction(customerId: number, interactionId: number, interaction: UpdateCustomerInteractionRequest): Observable<CustomerInteraction> {
+    return this.http.put<CustomerInteraction>(`${this.apiUrl}/${customerId}/interactions/${interactionId}`, interaction);
+  }
+
+  /**
    * Delete a customer interaction
    * @param customerId Customer ID
    * @param interactionId Interaction ID
@@ -186,7 +218,7 @@ export class CustomerService {
 
   /**
    * Search customers by criteria
-   * @param params Search parameters (name, status, phone, email)
+   * @param params Search parameters (name, status, phone, email, budget range)
    */
   searchCustomers(params: CustomerSearchParams): Observable<Customer[]> {
     let httpParams = new HttpParams();
@@ -195,20 +227,9 @@ export class CustomerService {
     if (params.status) httpParams = httpParams.set('status', params.status);
     if (params.phone) httpParams = httpParams.set('phone', params.phone);
     if (params.email) httpParams = httpParams.set('email', params.email);
+    if (params.minBudget !== undefined) httpParams = httpParams.set('minBudget', params.minBudget.toString());
+    if (params.maxBudget !== undefined) httpParams = httpParams.set('maxBudget', params.maxBudget.toString());
 
     return this.http.get<Customer[]>(`${this.apiUrl}/search`, { params: httpParams });
-  }
-
-  /**
-   * Get customers by budget range
-   * @param minBudget Minimum budget
-   * @param maxBudget Maximum budget
-   */
-  getCustomersByBudgetRange(minBudget: number, maxBudget: number): Observable<Customer[]> {
-    const params = new HttpParams()
-      .set('minBudget', minBudget.toString())
-      .set('maxBudget', maxBudget.toString());
-
-    return this.http.get<Customer[]>(`${this.apiUrl}/budget-range`, { params });
   }
 }

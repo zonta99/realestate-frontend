@@ -6,10 +6,13 @@ export interface Customer {
   lastName: string;
   email: string;
   phone?: string;
+  budgetMin?: number;
+  budgetMax?: number;
+  notes?: string;
+  leadSource?: string;
   status: CustomerStatus;
   agentId: number;
   agentName?: string;
-  notes?: string;
   createdDate: string;
   updatedDate: string;
   searchCriteria?: CustomerSearchCriteria[];
@@ -37,7 +40,11 @@ export interface CreateCustomerRequest {
   lastName: string;
   email: string;
   phone?: string;
+  budgetMin?: number;
+  budgetMax?: number;
   notes?: string;
+  leadSource?: string;
+  status?: CustomerStatus;
 }
 
 export interface UpdateCustomerRequest {
@@ -45,8 +52,11 @@ export interface UpdateCustomerRequest {
   lastName?: string;
   email?: string;
   phone?: string;
-  status?: CustomerStatus;
+  budgetMin?: number;
+  budgetMax?: number;
   notes?: string;
+  leadSource?: string;
+  status?: CustomerStatus;
 }
 
 export interface CreateSearchCriteriaRequest {
@@ -144,6 +154,10 @@ export interface CreateCustomerNoteRequest {
   content: string;
 }
 
+export interface UpdateCustomerNoteRequest {
+  content: string;
+}
+
 // Customer Interactions
 export enum InteractionType {
   PHONE_CALL = 'PHONE_CALL',
@@ -180,10 +194,21 @@ export interface CreateCustomerInteractionRequest {
   relatedPropertyId?: number;
 }
 
+export interface UpdateCustomerInteractionRequest {
+  type: InteractionType;
+  subject: string;
+  notes?: string;
+  interactionDate: string;
+  durationMinutes?: number;
+  relatedPropertyId?: number;
+}
+
 // Customer Search
 export interface CustomerSearchParams {
   name?: string;
   status?: CustomerStatus;
   phone?: string;
   email?: string;
+  minBudget?: number;
+  maxBudget?: number;
 }
