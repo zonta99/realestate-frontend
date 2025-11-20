@@ -129,18 +129,61 @@ export interface ApiResponse<T = any> {
   data?: T;
 }
 
-export interface PropertyMatch {
-  propertyId: number;
-  title: string;
-  price: number;
-  bedrooms?: number;
-  city?: string;
-  matchScore: number;
-}
-
-export interface CustomerMatchesResponse {
+// Customer Notes
+export interface CustomerNote {
+  id: number;
   customerId: number;
   customerName: string;
-  matches: PropertyMatch[];
-  totalMatches: number;
+  createdByUserId: number;
+  createdByUserName: string;
+  content: string;
+  createdDate: string;
+}
+
+export interface CreateCustomerNoteRequest {
+  content: string;
+}
+
+// Customer Interactions
+export enum InteractionType {
+  PHONE_CALL = 'PHONE_CALL',
+  EMAIL = 'EMAIL',
+  MEETING = 'MEETING',
+  PROPERTY_VIEWING = 'PROPERTY_VIEWING',
+  SMS = 'SMS',
+  VIDEO_CALL = 'VIDEO_CALL',
+  OTHER = 'OTHER'
+}
+
+export interface CustomerInteraction {
+  id: number;
+  customerId: number;
+  customerName: string;
+  userId: number;
+  userName: string;
+  type: InteractionType;
+  subject: string;
+  notes: string | null;
+  interactionDate: string;
+  durationMinutes: number | null;
+  relatedPropertyId: number | null;
+  relatedPropertyTitle: string | null;
+  createdDate: string;
+}
+
+export interface CreateCustomerInteractionRequest {
+  type: InteractionType;
+  subject: string;
+  notes?: string;
+  interactionDate: string;
+  durationMinutes?: number;
+  relatedPropertyId?: number;
+}
+
+// Customer Search
+export interface CustomerSearchParams {
+  name?: string;
+  status?: CustomerStatus;
+  phone?: string;
+  email?: string;
 }
