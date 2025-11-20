@@ -1,6 +1,6 @@
 // src/app/features/attributes/services/attribute.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
@@ -10,11 +10,15 @@ import {
   UpdateAttributeRequest,
   CreateAttributeOptionRequest,
   UpdateAttributeOptionRequest,
-  ReorderAttributesRequest,
   SetAttributeValueRequest,
   PropertyCategory,
   ApiResponse
 } from '../../properties/models/property.interface';
+
+export interface AttributeReorderItem {
+  attributeId: number;
+  newDisplayOrder: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -33,15 +37,16 @@ export class AttributeService {
   }
 
   getAttributesByCategory(category: PropertyCategory): Observable<PropertyAttribute[]> {
-    return this.http.get<PropertyAttribute[]>(`${this.apiUrl}/property-attributes/category/${category}`);
+    const params = new HttpParams().set('category', category);
+    return this.http.get<PropertyAttribute[]>(`${this.apiUrl}/property-attributes/by-category`, { params });
   }
 
   getAttributeById(id: number): Observable<PropertyAttribute> {
     return this.http.get<PropertyAttribute>(`${this.apiUrl}/property-attributes/${id}`);
   }
 
-  createAttribute(request: CreateAttributeRequest): Observable<ApiResponse<PropertyAttribute>> {
-    return this.http.post<ApiResponse<PropertyAttribute>>(`${this.apiUrl}/property-attributes`, request);
+  createAttribute(request: CreateAttributeRequest): Observable<PropertyAttribute> {
+    return this.http.post<PropertyAttribute>(`${this.apiUrl}/property-attributes`, request);
   }
 
   updateAttribute(id: number, request: UpdateAttributeRequest): Observable<PropertyAttribute> {
@@ -64,22 +69,30 @@ export class AttributeService {
     return this.http.delete<ApiResponse>(`${this.apiUrl}/property-attributes/options/${optionId}`);
   }
 
-  reorderAttributes(category: PropertyCategory, attributeIds: number[]): Observable<ApiResponse> {
-    const request: ReorderAttributesRequest = { attributeIds };
-    return this.http.put<ApiResponse>(`${this.apiUrl}/property-attributes/category/${category}/reorder`, request);
+  reorderAttributes(reorderItems: AttributeReorderItem[]): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.apiUrl}/property-attributes/reorder`, reorderItems);
+  }
+
+  /**
+   * Search attributes by name
+   * @param name Search term for attribute name
+   */
+  searchAttributes(name: string): Observable<PropertyAttribute[]> {
+    const params = new HttpParams().set('name', name);
+    return this.http.get<PropertyAttribute[]>(`${this.apiUrl}/property-attributes/search`, { params });
   }
 
   // Property Attribute Values APIs
   getPropertyAttributeValues(propertyId: number): Observable<PropertyValue[]> {
-    return this.http.get<PropertyValue[]>(`${this.apiUrl}/properties/${propertyId}/values`);
+    return this.http.get<PropertyValue[]>(`${this.apiUrl}/properties/${propertyId}/attribute-values`);
   }
 
   setPropertyAttributeValue(propertyId: number, request: SetAttributeValueRequest): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.apiUrl}/properties/${propertyId}/values`, request);
+    return this.http.post<ApiResponse>(`${this.apiUrl}/properties/${propertyId}/attribute-values`, request);
   }
 
   deletePropertyAttributeValue(propertyId: number, attributeId: number): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.apiUrl}/properties/${propertyId}/values/${attributeId}`);
+    return this.http.delete<ApiResponse>(`${this.apiUrl}/properties/${propertyId}/attribute-values/${attributeId}`);
   }
 
   // Utility methods for frontend

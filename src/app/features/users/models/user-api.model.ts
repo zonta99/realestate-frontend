@@ -71,6 +71,12 @@ export interface UserListParams {
   sort?: string;
 }
 
+export interface UserSearchParams {
+  username?: string;
+  role?: Role;
+  status?: UserStatus;
+}
+
 export interface ApiResponse<T = any> {
   message: string;
   data?: T;
