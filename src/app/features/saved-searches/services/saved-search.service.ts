@@ -29,6 +29,14 @@ export class SavedSearchService {
   }
 
   /**
+   * Get all saved searches for a specific customer
+   * @param customerId Customer ID
+   */
+  getSavedSearchesByCustomer(customerId: number): Observable<SavedSearch[]> {
+    return this.http.get<SavedSearch[]>(`${environment.apiUrl}/api/customers/${customerId}/saved-searches`);
+  }
+
+  /**
    * Get a specific saved search by ID
    */
   getSavedSearchById(id: number): Observable<SavedSearch> {
@@ -40,6 +48,18 @@ export class SavedSearchService {
    */
   createSavedSearch(request: CreateSavedSearchRequest): Observable<SavedSearchResponse> {
     return this.http.post<SavedSearchResponse>(this.apiUrl, request);
+  }
+
+  /**
+   * Create a saved search for a specific customer
+   * @param customerId Customer ID
+   * @param request Search criteria
+   */
+  createSavedSearchForCustomer(customerId: number, request: CreateSavedSearchRequest): Observable<SavedSearchResponse> {
+    return this.http.post<SavedSearchResponse>(
+      `${environment.apiUrl}/api/customers/${customerId}/saved-searches`,
+      request
+    );
   }
 
   /**
@@ -64,7 +84,28 @@ export class SavedSearchService {
   }
 
   /**
-   * Execute a saved search by ID (convenience method)
+   * Execute a saved search by ID using dedicated endpoint
+   * @param savedSearchId Saved search ID
+   * @param page Page number (default 0)
+   * @param size Page size (default 20)
+   */
+  executeSavedSearchById(
+    savedSearchId: number,
+    page: number = 0,
+    size: number = 20
+  ): Observable<PropertyPageResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<PropertyPageResponse>(
+      `${this.apiUrl}/${savedSearchId}/execute`,
+      { params }
+    );
+  }
+
+  /**
+   * Execute a saved search by ID (convenience method using POST)
    */
   executeSavedSearch(
     savedSearch: SavedSearch,

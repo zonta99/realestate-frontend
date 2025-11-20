@@ -11,6 +11,7 @@ import {
   HierarchyRequest,
   ChangePasswordRequest,
   UserListParams,
+  UserSearchParams,
   ApiResponse
 } from '../models/user-api.model';
 import { Role, UserStatus } from '../../../core/auth/models/user.model';
@@ -67,11 +68,25 @@ export class UserService {
   }
 
   /**
-   * Get users by role
+   * Search users by various criteria
+   * @param params Search parameters (username, role, status)
+   */
+  searchUsers(params: UserSearchParams): Observable<UserResponse[]> {
+    let httpParams = new HttpParams();
+
+    if (params.username) httpParams = httpParams.set('username', params.username);
+    if (params.role) httpParams = httpParams.set('role', params.role);
+    if (params.status) httpParams = httpParams.set('status', params.status);
+
+    return this.http.get<UserResponse[]>(`${this.baseUrl}/search`, { params: httpParams });
+  }
+
+  /**
+   * Get users by role (convenience method)
+   * @param role User role to filter by
    */
   getUsersByRole(role: Role): Observable<UserResponse[]> {
-    const params = new HttpParams().set('role', role);
-    return this.http.get<UserResponse[]>(`${this.baseUrl}/search`, { params });
+    return this.searchUsers({ role });
   }
 
   /**

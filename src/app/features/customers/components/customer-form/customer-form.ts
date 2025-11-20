@@ -122,7 +122,55 @@ import { CustomerStatus } from '../../models';
                 </form>
               </mat-step>
 
-              <!-- Step 2: Search Criteria -->
+              <!-- Step 2: Budget & Lead Information -->
+              <mat-step>
+                <form [formGroup]="customerForm">
+                  <ng-template matStepLabel>Budget & Lead Information</ng-template>
+
+                  <p class="step-description">
+                    Set the customer's budget range and track the lead source for qualification.
+                  </p>
+
+                  <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Minimum Budget</mat-label>
+                      <input matInput type="number" formControlName="budgetMin">
+                      <span matPrefix>$&nbsp;</span>
+                      <mat-hint>Customer's minimum budget for property search</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                      <mat-label>Maximum Budget</mat-label>
+                      <input matInput type="number" formControlName="budgetMax">
+                      <span matPrefix>$&nbsp;</span>
+                      <mat-hint>Customer's maximum budget for property search</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Lead Source</mat-label>
+                      <mat-select formControlName="leadSource">
+                        <mat-option value="">None</mat-option>
+                        <mat-option value="Website Inquiry">Website Inquiry</mat-option>
+                        <mat-option value="Phone Call">Phone Call</mat-option>
+                        <mat-option value="Walk-In">Walk-In</mat-option>
+                        <mat-option value="Referral">Referral</mat-option>
+                        <mat-option value="Social Media">Social Media</mat-option>
+                        <mat-option value="Email Campaign">Email Campaign</mat-option>
+                        <mat-option value="Open House">Open House</mat-option>
+                        <mat-option value="Other">Other</mat-option>
+                      </mat-select>
+                      <mat-hint>How did this customer find us?</mat-hint>
+                    </mat-form-field>
+                  </div>
+
+                  <div class="step-actions">
+                    <button mat-button matStepperPrevious>Back</button>
+                    <button mat-raised-button matStepperNext>Next</button>
+                  </div>
+                </form>
+              </mat-step>
+
+              <!-- Step 3: Search Criteria -->
               <mat-step [stepControl]="searchCriteriaForm">
                 <form [formGroup]="searchCriteriaForm">
                   <ng-template matStepLabel>Search Criteria (Optional)</ng-template>
@@ -182,7 +230,7 @@ import { CustomerStatus } from '../../models';
                 </form>
               </mat-step>
 
-              <!-- Step 3: Review & Submit -->
+              <!-- Step 4: Review & Submit -->
               <mat-step>
                 <ng-template matStepLabel>Review & Submit</ng-template>
 
@@ -205,6 +253,22 @@ import { CustomerStatus } from '../../models';
                       <strong>Status:</strong>
                       <span>{{ customerForm.value.status }}</span>
                     </div>
+                    @if (customerForm.value.budgetMin || customerForm.value.budgetMax) {
+                      <div class="review-item">
+                        <strong>Budget Range:</strong>
+                        <span>
+                          {{ customerForm.value.budgetMin ? ('$' + customerForm.value.budgetMin.toLocaleString()) : 'Any' }}
+                          -
+                          {{ customerForm.value.budgetMax ? ('$' + customerForm.value.budgetMax.toLocaleString()) : 'Any' }}
+                        </span>
+                      </div>
+                    }
+                    @if (customerForm.value.leadSource) {
+                      <div class="review-item">
+                        <strong>Lead Source:</strong>
+                        <span>{{ customerForm.value.leadSource }}</span>
+                      </div>
+                    }
                     @if (customerForm.value.notes) {
                       <div class="review-item full-width">
                         <strong>Notes:</strong>
@@ -447,6 +511,9 @@ export class CustomerForm implements OnInit, OnDestroy {
           email: customer.email,
           phone: customer.phone,
           status: customer.status,
+          budgetMin: customer.budgetMin,
+          budgetMax: customer.budgetMax,
+          leadSource: customer.leadSource,
           agentId: customer.agentId,
           notes: customer.notes
         });
@@ -483,6 +550,9 @@ export class CustomerForm implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
       status: [CustomerStatus.LEAD, Validators.required],
+      budgetMin: [null],
+      budgetMax: [null],
+      leadSource: [''],
       agentId: [null],
       notes: ['']
     });

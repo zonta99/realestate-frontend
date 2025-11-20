@@ -11,6 +11,7 @@ import {
   PropertyPageResponse,
   PropertyListParams,
   PropertySearchParams,
+  PropertySearchCriteriaRequest,
   PropertyValue,
   PropertySharing,
   SharePropertyRequest,
@@ -56,7 +57,7 @@ export class PropertyService {
   getPropertyFullData(id: number): Observable<PropertyFullData> {
     return forkJoin({
       property: this.http.get<Property>(`${this.baseUrl}/${id}`),
-      attributeValues: this.http.get<PropertyValue[]>(`${this.baseUrl}/${id}/values`)
+      attributeValues: this.http.get<PropertyValue[]>(`${this.baseUrl}/${id}/attribute-values`)
     }).pipe(
       map(({ property, attributeValues }) => ({
         property,
@@ -148,18 +149,18 @@ export class PropertyService {
 
   // Attribute value methods
   getPropertyValues(propertyId: number): Observable<PropertyValue[]> {
-    return this.http.get<PropertyValue[]>(`${this.baseUrl}/${propertyId}/values`);
+    return this.http.get<PropertyValue[]>(`${this.baseUrl}/${propertyId}/attribute-values`);
   }
 
   setPropertyValue(propertyId: number, attributeId: number, value: any): Observable<PropertyValue> {
-    return this.http.post<PropertyValue>(`${this.baseUrl}/${propertyId}/values`, {
+    return this.http.post<PropertyValue>(`${this.baseUrl}/${propertyId}/attribute-values`, {
       attributeId,
       value: this.normalizeValue(value)
     });
   }
 
   deletePropertyValue(propertyId: number, attributeId: number): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.baseUrl}/${propertyId}/values/${attributeId}`);
+    return this.http.delete<ApiResponse>(`${this.baseUrl}/${propertyId}/attribute-values/${attributeId}`);
   }
 
   // Property sharing methods
@@ -172,6 +173,24 @@ export class PropertyService {
   }
 
   getPropertySharingDetails(propertyId: number): Observable<PropertySharing[]> {
-    return this.http.get<PropertySharing[]>(`${this.baseUrl}/${propertyId}/sharing`);
+    return this.http.get<PropertySharing[]>(`${this.baseUrl}/${propertyId}/shares`);
+  }
+
+  /**
+   * Update property status only
+   * @param id Property ID
+   * @param status New status
+   */
+  updatePropertyStatus(id: number, status: PropertyStatus): Observable<ApiResponse> {
+    const params = new HttpParams().set('status', status);
+    return this.http.patch<ApiResponse>(`${this.baseUrl}/${id}/status`, null, { params });
+  }
+
+  /**
+   * Advanced search with property criteria and attribute filters
+   * @param criteria Search criteria including price range, filters, and pagination
+   */
+  searchByCriteria(criteria: PropertySearchCriteriaRequest): Observable<PropertyPageResponse> {
+    return this.http.post<PropertyPageResponse>(`${this.baseUrl}/search/by-criteria`, criteria);
   }
 }

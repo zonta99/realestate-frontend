@@ -165,7 +165,7 @@ import {MatDivider} from '@angular/material/divider';
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="; columns: displayedColumns;" class="user-row"></tr>
+            <tr mat-row *matRowDef="let row ;columns: displayedColumns;" class="user-row"></tr>
           </table>
 
           <!-- Empty State -->

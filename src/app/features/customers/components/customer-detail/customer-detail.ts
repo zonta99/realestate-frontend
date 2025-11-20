@@ -92,6 +92,24 @@ import { CustomerFacadeService } from '../../services';
                   <div>{{ customerFacade.selectedCustomer()?.agentName || 'Unassigned' }}</div>
                 </div>
 
+                @if (customerFacade.selectedCustomer()?.budgetMin || customerFacade.selectedCustomer()?.budgetMax) {
+                  <div>
+                    <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Budget Range</div>
+                    <div style="font-weight: 500; color: #4caf50">
+                      {{ customerFacade.selectedCustomer()?.budgetMin ? ('$' + customerFacade.selectedCustomer()!.budgetMin!.toLocaleString()) : 'Any' }}
+                      -
+                      {{ customerFacade.selectedCustomer()?.budgetMax ? ('$' + customerFacade.selectedCustomer()!.budgetMax!.toLocaleString()) : 'Any' }}
+                    </div>
+                  </div>
+                }
+
+                @if (customerFacade.selectedCustomer()?.leadSource) {
+                  <div>
+                    <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Lead Source</div>
+                    <mat-chip highlighted>{{ customerFacade.selectedCustomer()?.leadSource }}</mat-chip>
+                  </div>
+                }
+
                 <div>
                   <div style="font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 4px">Created Date</div>
                   <div>{{ customerFacade.selectedCustomer()?.createdDate | date:'medium' }}</div>

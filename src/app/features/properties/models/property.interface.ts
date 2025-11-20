@@ -66,6 +66,25 @@ export interface PropertyListParams extends PropertySearchParams {
   sort?: string;
 }
 
+export interface PropertySearchCriteriaRequest {
+  minPrice?: number;
+  maxPrice?: number;
+  filters?: PropertySearchFilter[];
+  page?: number;
+  size?: number;
+  sort?: string;
+}
+
+export interface PropertySearchFilter {
+  attributeId: number;
+  dataType: PropertyAttributeDataType;
+  minValue?: number;
+  maxValue?: number;
+  textValue?: string;
+  booleanValue?: boolean;
+  selectedValues?: string[];
+}
+
 export interface PropertyPageResponse {
   content: Property[];
   pageable: {
