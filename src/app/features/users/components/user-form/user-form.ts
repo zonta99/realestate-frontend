@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { UserFacadeService } from '../../services/user-facade.service';
-import { Role, UserStatus } from '../../../../core/auth/models/user.model';
+import { Role, UserStatus } from '../../../../core/auth/models';
 import { CreateUserRequest, UpdateUserRequest } from '../../models/user-api.model';
 
 @Component({
@@ -387,8 +387,8 @@ export class UserForm implements OnInit {
 
     if (this.isEditMode && this.userId) {
       const updateData: UpdateUserRequest = {
-        firstName: this.userForm.value.firstName,
-        lastName: this.userForm.value.lastName,
+        firstName: this.userForm.value.firstName ?? undefined,
+        lastName: this.userForm.value.lastName ?? undefined,
         email: this.userForm.value.email!,
         role: this.userForm.value.role!,
         status: this.userForm.value.status!
@@ -399,8 +399,8 @@ export class UserForm implements OnInit {
         username: this.userForm.value.username!,
         password: this.userForm.value.password!,
         email: this.userForm.value.email!,
-        firstName: this.userForm.value.firstName,
-        lastName: this.userForm.value.lastName,
+        firstName: this.userForm.value.firstName ?? undefined,
+        lastName: this.userForm.value.lastName ?? undefined,
         role: this.userForm.value.role!
       };
       this.userFacade.createUser(createData);

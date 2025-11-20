@@ -8,14 +8,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chip';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserFacadeService } from '../../services/user-facade.service';
-import { Role, UserStatus } from '../../../../core/auth/models/user.model';
+import { Role, UserStatus } from '../../../../core/auth/models';
 import { UserResponse } from '../../models/user-api.model';
+import {MatDivider} from '@angular/material/divider';
 
 @Component({
   selector: 'app-user-list',
@@ -33,7 +34,8 @@ import { UserResponse } from '../../models/user-api.model';
     MatMenuModule,
     MatSelectModule,
     MatFormFieldModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatDivider
   ],
   template: `
     <div class="page-container">
@@ -81,131 +83,131 @@ import { UserResponse } from '../../models/user-api.model';
       <!-- Users Table -->
       @if (!isLoading()) {
         <mat-card class="table-card">
-        <table mat-table [dataSource]="users()" class="users-table">
-          <!-- Username Column -->
-          <ng-container matColumnDef="username">
-            <th mat-header-cell *matHeaderCellDef>Username</th>
-            <td mat-cell *matCellDef="let user">
-              <div class="user-cell">
-                <mat-icon class="user-icon">account_circle</mat-icon>
-                <div>
-                  <div class="username">{{ user.username }}</div>
-                  <div class="email">{{ user.email }}</div>
+          <table mat-table [dataSource]="users()" class="users-table">
+            <!-- Username Column -->
+            <ng-container matColumnDef="username">
+              <th mat-header-cell *matHeaderCellDef>Username</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="user-cell">
+                  <mat-icon class="user-icon">account_circle</mat-icon>
+                  <div>
+                    <div class="username">{{ user.username }}</div>
+                    <div class="email">{{ user.email }}</div>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </ng-container>
+              </td>
+            </ng-container>
 
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let user">
-              {{ user.firstName }} {{ user.lastName }}
-            </td>
-          </ng-container>
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let user">
+                {{ user.firstName }} {{ user.lastName }}
+              </td>
+            </ng-container>
 
-          <!-- Role Column -->
-          <ng-container matColumnDef="role">
-            <th mat-header-cell *matHeaderCellDef>Role</th>
-            <td mat-cell *matCellDef="let user">
-              <mat-chip [class]="getRoleClass(user.role)">
-                {{ getRoleLabel(user.role) }}
-              </mat-chip>
-            </td>
-          </ng-container>
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let user">
+                <mat-chip [class]="getRoleClass(user.role)">
+                  {{ getRoleLabel(user.role) }}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-          <!-- Status Column -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let user">
-              <mat-chip [class]="getStatusClass(user.status)">
-                <mat-icon>{{ getStatusIcon(user.status) }}</mat-icon>
-                {{ user.status }}
-              </mat-chip>
-            </td>
-          </ng-container>
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let user">
+                <mat-chip [class]="getStatusClass(user.status)">
+                  <mat-icon>{{ getStatusIcon(user.status) }}</mat-icon>
+                  {{ user.status }}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-          <!-- Created Date Column -->
-          <ng-container matColumnDef="createdDate">
-            <th mat-header-cell *matHeaderCellDef>Created</th>
-            <td mat-cell *matCellDef="let user">
-              {{ user.createdDate | date: 'short' }}
-            </td>
-          </ng-container>
+            <!-- Created Date Column -->
+            <ng-container matColumnDef="createdDate">
+              <th mat-header-cell *matHeaderCellDef>Created</th>
+              <td mat-cell *matCellDef="let user">
+                {{ user.createdDate | date: 'short' }}
+              </td>
+            </ng-container>
 
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let user">
-              <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="User actions">
-                <mat-icon>more_vert</mat-icon>
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let user">
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="User actions">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="viewUser(user.id)">
+                    <mat-icon>visibility</mat-icon>
+                    <span>View Details</span>
+                  </button>
+                  <button mat-menu-item (click)="editUser(user.id)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button mat-menu-item (click)="viewSubordinates(user.id)">
+                    <mat-icon>groups</mat-icon>
+                    <span>Subordinates</span>
+                  </button>
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item (click)="deleteUser(user)" class="delete-action">
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="; columns: displayedColumns;" class="user-row"></tr>
+          </table>
+
+          <!-- Empty State -->
+          @if (users().length === 0) {
+            <div class="empty-state">
+              <mat-icon>people_outline</mat-icon>
+              <h3>No users found</h3>
+              <p>Get started by adding your first user</p>
+              <button mat-raised-button color="primary" (click)="createUser()">
+                <mat-icon>person_add</mat-icon>
+                Add User
               </button>
-              <mat-menu #menu="matMenu">
-                <button mat-menu-item (click)="viewUser(user.id)">
-                  <mat-icon>visibility</mat-icon>
-                  <span>View Details</span>
-                </button>
-                <button mat-menu-item (click)="editUser(user.id)">
-                  <mat-icon>edit</mat-icon>
-                  <span>Edit</span>
-                </button>
-                <button mat-menu-item (click)="viewSubordinates(user.id)">
-                  <mat-icon>groups</mat-icon>
-                  <span>Subordinates</span>
-                </button>
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="deleteUser(user)" class="delete-action">
-                  <mat-icon>delete</mat-icon>
-                  <span>Delete</span>
-                </button>
-              </mat-menu>
-            </td>
-          </ng-container>
+            </div>
+          }
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="user-row"></tr>
-        </table>
-
-        <!-- Empty State -->
-        @if (users().length === 0) {
-          <div class="empty-state">
-            <mat-icon>people_outline</mat-icon>
-            <h3>No users found</h3>
-            <p>Get started by adding your first user</p>
-            <button mat-raised-button color="primary" (click)="createUser()">
-              <mat-icon>person_add</mat-icon>
-              Add User
-            </button>
-          </div>
-        }
-
-        <!-- Pagination -->
-        @if (users().length > 0) {
-          <mat-paginator
-            [length]="pagination().totalElements"
-            [pageSize]="pagination().pageSize"
-            [pageIndex]="pagination().currentPage"
-            [pageSizeOptions]="[10, 20, 50, 100]"
-            (page)="onPageChange($event)"
-            aria-label="Select page">
-          </mat-paginator>
-        }
+          <!-- Pagination -->
+          @if (users().length > 0) {
+            <mat-paginator
+              [length]="pagination().totalElements"
+              [pageSize]="pagination().pageSize"
+              [pageIndex]="pagination().currentPage"
+              [pageSizeOptions]="[10, 20, 50, 100]"
+              (page)="onPageChange($event)"
+              aria-label="Select page">
+            </mat-paginator>
+          }
         </mat-card>
       }
 
       <!-- Error State -->
       @if (error()) {
         <mat-card class="error-card">
-        <mat-card-content>
-          <div class="error-content">
-            <mat-icon color="warn">error</mat-icon>
-            <div>
-              <h3>Error Loading Users</h3>
-              <p>{{ error()?.message || 'An unexpected error occurred' }}</p>
-              <button mat-raised-button (click)="loadUsers()">Retry</button>
+          <mat-card-content>
+            <div class="error-content">
+              <mat-icon color="warn">error</mat-icon>
+              <div>
+                <h3>Error Loading Users</h3>
+                <p>{{ error()?.message || 'An unexpected error occurred' }}</p>
+                <button mat-raised-button (click)="loadUsers()">Retry</button>
+              </div>
             </div>
-          </div>
-        </mat-card-content>
+          </mat-card-content>
         </mat-card>
       }
     </div>

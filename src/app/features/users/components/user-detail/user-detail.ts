@@ -5,12 +5,12 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chip';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserFacadeService } from '../../services/user-facade.service';
-import { Role, UserStatus } from '../../../../core/auth/models/user.model';
+import { Role, UserStatus } from '../../../../core/auth/models';
 
 @Component({
   selector: 'app-user-detail',
