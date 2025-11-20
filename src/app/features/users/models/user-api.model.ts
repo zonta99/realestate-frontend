@@ -23,6 +23,11 @@ export interface HierarchyRequest {
   supervisorId: number;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // API Response DTOs
 export interface UserResponse {
   id: number;

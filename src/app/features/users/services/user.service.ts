@@ -9,10 +9,11 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
   HierarchyRequest,
+  ChangePasswordRequest,
   UserListParams,
   ApiResponse
 } from '../models/user-api.model';
-import { Role } from '../../../core/auth/models/user.model';
+import { Role, UserStatus } from '../../../core/auth/models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -69,7 +70,8 @@ export class UserService {
    * Get users by role
    */
   getUsersByRole(role: Role): Observable<UserResponse[]> {
-    return this.http.get<UserResponse[]>(`${this.baseUrl}/roles/${role}`);
+    const params = new HttpParams().set('role', role);
+    return this.http.get<UserResponse[]>(`${this.baseUrl}/search`, { params });
   }
 
   /**
@@ -83,14 +85,28 @@ export class UserService {
    * Add supervisor relationship
    */
   addSupervisor(userId: number, supervisorId: number): Observable<ApiResponse> {
-    const request: HierarchyRequest = { supervisorId };
-    return this.http.post<ApiResponse>(`${this.baseUrl}/${userId}/hierarchy`, request);
+    return this.http.post<ApiResponse>(`${this.baseUrl}/${userId}/supervisors/${supervisorId}`, null);
   }
 
   /**
    * Remove supervisor relationship
    */
   removeSupervisor(userId: number, supervisorId: number): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.baseUrl}/${userId}/hierarchy/${supervisorId}`);
+    return this.http.delete<ApiResponse>(`${this.baseUrl}/${userId}/supervisors/${supervisorId}`);
+  }
+
+  /**
+   * Change user password
+   */
+  changePassword(userId: number, request: ChangePasswordRequest): Observable<ApiResponse> {
+    return this.http.patch<ApiResponse>(`${this.baseUrl}/${userId}/password`, request);
+  }
+
+  /**
+   * Update user status
+   */
+  updateUserStatus(userId: number, status: UserStatus): Observable<ApiResponse> {
+    const params = new HttpParams().set('status', status);
+    return this.http.patch<ApiResponse>(`${this.baseUrl}/${userId}/status`, null, { params });
   }
 }
