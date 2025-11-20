@@ -124,48 +124,50 @@ import { CustomerStatus } from '../../models';
 
               <!-- Step 2: Budget & Lead Information -->
               <mat-step>
-                <ng-template matStepLabel>Budget & Lead Information</ng-template>
+                <form [formGroup]="customerForm">
+                  <ng-template matStepLabel>Budget & Lead Information</ng-template>
 
-                <p class="step-description">
-                  Set the customer's budget range and track the lead source for qualification.
-                </p>
+                  <p class="step-description">
+                    Set the customer's budget range and track the lead source for qualification.
+                  </p>
 
-                <div class="form-grid">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Minimum Budget</mat-label>
-                    <input matInput type="number" [formControl]="customerForm.get('budgetMin')!">
-                    <span matPrefix>$&nbsp;</span>
-                    <mat-hint>Customer's minimum budget for property search</mat-hint>
-                  </mat-form-field>
+                  <div class="form-grid">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Minimum Budget</mat-label>
+                      <input matInput type="number" formControlName="budgetMin">
+                      <span matPrefix>$&nbsp;</span>
+                      <mat-hint>Customer's minimum budget for property search</mat-hint>
+                    </mat-form-field>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label>Maximum Budget</mat-label>
-                    <input matInput type="number" [formControl]="customerForm.get('budgetMax')!">
-                    <span matPrefix>$&nbsp;</span>
-                    <mat-hint>Customer's maximum budget for property search</mat-hint>
-                  </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Maximum Budget</mat-label>
+                      <input matInput type="number" formControlName="budgetMax">
+                      <span matPrefix>$&nbsp;</span>
+                      <mat-hint>Customer's maximum budget for property search</mat-hint>
+                    </mat-form-field>
 
-                  <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Lead Source</mat-label>
-                    <mat-select [formControl]="customerForm.get('leadSource')!">
-                      <mat-option value="">None</mat-option>
-                      <mat-option value="Website Inquiry">Website Inquiry</mat-option>
-                      <mat-option value="Phone Call">Phone Call</mat-option>
-                      <mat-option value="Walk-In">Walk-In</mat-option>
-                      <mat-option value="Referral">Referral</mat-option>
-                      <mat-option value="Social Media">Social Media</mat-option>
-                      <mat-option value="Email Campaign">Email Campaign</mat-option>
-                      <mat-option value="Open House">Open House</mat-option>
-                      <mat-option value="Other">Other</mat-option>
-                    </mat-select>
-                    <mat-hint>How did this customer find us?</mat-hint>
-                  </mat-form-field>
-                </div>
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Lead Source</mat-label>
+                      <mat-select formControlName="leadSource">
+                        <mat-option value="">None</mat-option>
+                        <mat-option value="Website Inquiry">Website Inquiry</mat-option>
+                        <mat-option value="Phone Call">Phone Call</mat-option>
+                        <mat-option value="Walk-In">Walk-In</mat-option>
+                        <mat-option value="Referral">Referral</mat-option>
+                        <mat-option value="Social Media">Social Media</mat-option>
+                        <mat-option value="Email Campaign">Email Campaign</mat-option>
+                        <mat-option value="Open House">Open House</mat-option>
+                        <mat-option value="Other">Other</mat-option>
+                      </mat-select>
+                      <mat-hint>How did this customer find us?</mat-hint>
+                    </mat-form-field>
+                  </div>
 
-                <div class="step-actions">
-                  <button mat-button matStepperPrevious>Back</button>
-                  <button mat-raised-button matStepperNext>Next</button>
-                </div>
+                  <div class="step-actions">
+                    <button mat-button matStepperPrevious>Back</button>
+                    <button mat-raised-button matStepperNext>Next</button>
+                  </div>
+                </form>
               </mat-step>
 
               <!-- Step 3: Search Criteria -->
