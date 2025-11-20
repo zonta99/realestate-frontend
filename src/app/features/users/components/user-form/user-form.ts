@@ -41,13 +41,16 @@ import { CreateUserRequest, UpdateUserRequest } from '../../models/user-api.mode
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="(loading() || isLoading()) && isEditMode" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Loading user data...</p>
-      </div>
+      @if ((loading() || isLoading()) && isEditMode) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading user data...</p>
+        </div>
+      }
 
       <!-- Form -->
-      <mat-card *ngIf="!loading() || !isEditMode" class="form-card">
+      @if (!loading() || !isEditMode) {
+        <mat-card class="form-card">
         <mat-card-content>
           <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
             <div class="form-grid">
@@ -56,43 +59,47 @@ import { CreateUserRequest, UpdateUserRequest } from '../../models/user-api.mode
                 <mat-label>Username</mat-label>
                 <input matInput formControlName="username" placeholder="Enter username" [readonly]="isEditMode">
                 <mat-icon matPrefix>person</mat-icon>
-                <mat-hint *ngIf="!isEditMode">Username cannot be changed after creation</mat-hint>
-                <mat-error *ngIf="userForm.get('username')?.hasError('required')">
-                  Username is required
-                </mat-error>
-                <mat-error *ngIf="userForm.get('username')?.hasError('minlength')">
-                  Username must be at least 3 characters
-                </mat-error>
-                <mat-error *ngIf="userForm.get('username')?.hasError('maxlength')">
-                  Username must be at most 20 characters
-                </mat-error>
+                @if (!isEditMode) {
+                  <mat-hint>Username cannot be changed after creation</mat-hint>
+                }
+                @if (userForm.get('username')?.hasError('required')) {
+                  <mat-error>Username is required</mat-error>
+                }
+                @if (userForm.get('username')?.hasError('minlength')) {
+                  <mat-error>Username must be at least 3 characters</mat-error>
+                }
+                @if (userForm.get('username')?.hasError('maxlength')) {
+                  <mat-error>Username must be at most 20 characters</mat-error>
+                }
               </mat-form-field>
 
               <!-- Password (Create Only) -->
-              <mat-form-field *ngIf="!isEditMode" appearance="outline" class="full-width">
-                <mat-label>Password</mat-label>
-                <input matInput type="password" formControlName="password" placeholder="Enter password">
-                <mat-icon matPrefix>lock</mat-icon>
-                <mat-hint>At least 8 characters</mat-hint>
-                <mat-error *ngIf="userForm.get('password')?.hasError('required')">
-                  Password is required
-                </mat-error>
-                <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
-                  Password must be at least 8 characters
-                </mat-error>
-              </mat-form-field>
+              @if (!isEditMode) {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Password</mat-label>
+                  <input matInput type="password" formControlName="password" placeholder="Enter password">
+                  <mat-icon matPrefix>lock</mat-icon>
+                  <mat-hint>At least 8 characters</mat-hint>
+                  @if (userForm.get('password')?.hasError('required')) {
+                    <mat-error>Password is required</mat-error>
+                  }
+                  @if (userForm.get('password')?.hasError('minlength')) {
+                    <mat-error>Password must be at least 8 characters</mat-error>
+                  }
+                </mat-form-field>
+              }
 
               <!-- Email -->
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" formControlName="email" placeholder="user@example.com">
                 <mat-icon matPrefix>email</mat-icon>
-                <mat-error *ngIf="userForm.get('email')?.hasError('required')">
-                  Email is required
-                </mat-error>
-                <mat-error *ngIf="userForm.get('email')?.hasError('email')">
-                  Please enter a valid email
-                </mat-error>
+                @if (userForm.get('email')?.hasError('required')) {
+                  <mat-error>Email is required</mat-error>
+                }
+                @if (userForm.get('email')?.hasError('email')) {
+                  <mat-error>Please enter a valid email</mat-error>
+                }
               </mat-form-field>
 
               <!-- First Name -->
@@ -119,23 +126,25 @@ import { CreateUserRequest, UpdateUserRequest } from '../../models/user-api.mode
                   <mat-option [value]="Role.ASSISTANT">Assistant</mat-option>
                 </mat-select>
                 <mat-icon matPrefix>admin_panel_settings</mat-icon>
-                <mat-error *ngIf="userForm.get('role')?.hasError('required')">
-                  Role is required
-                </mat-error>
+                @if (userForm.get('role')?.hasError('required')) {
+                  <mat-error>Role is required</mat-error>
+                }
               </mat-form-field>
 
               <!-- Status (Edit Only) -->
-              <mat-form-field *ngIf="isEditMode" appearance="outline">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  <mat-option [value]="UserStatus.ACTIVE">Active</mat-option>
-                  <mat-option [value]="UserStatus.INACTIVE">Inactive</mat-option>
-                </mat-select>
-                <mat-icon matPrefix>toggle_on</mat-icon>
-                <mat-error *ngIf="userForm.get('status')?.hasError('required')">
-                  Status is required
-                </mat-error>
-              </mat-form-field>
+              @if (isEditMode) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Status</mat-label>
+                  <mat-select formControlName="status">
+                    <mat-option [value]="UserStatus.ACTIVE">Active</mat-option>
+                    <mat-option [value]="UserStatus.INACTIVE">Inactive</mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix>toggle_on</mat-icon>
+                  @if (userForm.get('status')?.hasError('required')) {
+                    <mat-error>Status is required</mat-error>
+                  }
+                </mat-form-field>
+              }
             </div>
 
             <!-- Form Actions -->
@@ -144,19 +153,26 @@ import { CreateUserRequest, UpdateUserRequest } from '../../models/user-api.mode
                 Cancel
               </button>
               <button type="submit" mat-raised-button color="primary" [disabled]="userForm.invalid || isLoading()">
-                <mat-spinner *ngIf="isLoading()" diameter="20" class="button-spinner"></mat-spinner>
-                <span *ngIf="!isLoading()">{{ isEditMode ? 'Update User' : 'Create User' }}</span>
+                @if (isLoading()) {
+                  <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+                }
+                @if (!isLoading()) {
+                  <span>{{ isEditMode ? 'Update User' : 'Create User' }}</span>
+                }
               </button>
             </div>
           </form>
 
           <!-- Error Display -->
-          <div *ngIf="error()" class="error-message">
-            <mat-icon>error</mat-icon>
-            <span>{{ error()?.message || 'An error occurred' }}</span>
-          </div>
+          @if (error()) {
+            <div class="error-message">
+              <mat-icon>error</mat-icon>
+              <span>{{ error()?.message || 'An error occurred' }}</span>
+            </div>
+          }
         </mat-card-content>
-      </mat-card>
+        </mat-card>
+      }
 
       <!-- Help Card -->
       <mat-card class="help-card">

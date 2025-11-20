@@ -38,13 +38,16 @@ import { Role } from '../../../../core/auth/models/user.model';
       </div>
 
       <!-- Loading -->
-      <div *ngIf="loading()" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Loading organizational structure...</p>
-      </div>
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading organizational structure...</p>
+        </div>
+      }
 
       <!-- Hierarchy View -->
-      <div *ngIf="!loading()" class="hierarchy-content">
+      @if (!loading()) {
+        <div class="hierarchy-content">
         <mat-card class="info-card">
           <mat-card-content>
             <p class="info-text">
@@ -64,16 +67,21 @@ import { Role } from '../../../../core/auth/models/user.model';
                 Administrators ({{ getUsersByRole(Role.ADMIN).length }})
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <mat-list *ngIf="getUsersByRole(Role.ADMIN).length > 0">
-              <mat-list-item *ngFor="let user of getUsersByRole(Role.ADMIN)" (click)="viewUser(user.id)" class="clickable-item">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
-                <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
-              </mat-list-item>
-            </mat-list>
-            <div *ngIf="getUsersByRole(Role.ADMIN).length === 0" class="empty-role">
-              No administrators found
-            </div>
+            @if (getUsersByRole(Role.ADMIN).length > 0) {
+              <mat-list>
+                @for (user of getUsersByRole(Role.ADMIN); track user.id) {
+                  <mat-list-item (click)="viewUser(user.id)" class="clickable-item">
+                    <mat-icon matListItemIcon>person</mat-icon>
+                    <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
+                    <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            } @else {
+              <div class="empty-role">
+                No administrators found
+              </div>
+            }
           </mat-expansion-panel>
 
           <!-- Brokers -->
@@ -84,16 +92,21 @@ import { Role } from '../../../../core/auth/models/user.model';
                 Brokers ({{ getUsersByRole(Role.BROKER).length }})
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <mat-list *ngIf="getUsersByRole(Role.BROKER).length > 0">
-              <mat-list-item *ngFor="let user of getUsersByRole(Role.BROKER)" (click)="viewUser(user.id)" class="clickable-item">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
-                <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
-              </mat-list-item>
-            </mat-list>
-            <div *ngIf="getUsersByRole(Role.BROKER).length === 0" class="empty-role">
-              No brokers found
-            </div>
+            @if (getUsersByRole(Role.BROKER).length > 0) {
+              <mat-list>
+                @for (user of getUsersByRole(Role.BROKER); track user.id) {
+                  <mat-list-item (click)="viewUser(user.id)" class="clickable-item">
+                    <mat-icon matListItemIcon>person</mat-icon>
+                    <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
+                    <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            } @else {
+              <div class="empty-role">
+                No brokers found
+              </div>
+            }
           </mat-expansion-panel>
 
           <!-- Agents -->
@@ -104,16 +117,21 @@ import { Role } from '../../../../core/auth/models/user.model';
                 Agents ({{ getUsersByRole(Role.AGENT).length }})
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <mat-list *ngIf="getUsersByRole(Role.AGENT).length > 0">
-              <mat-list-item *ngFor="let user of getUsersByRole(Role.AGENT)" (click)="viewUser(user.id)" class="clickable-item">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
-                <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
-              </mat-list-item>
-            </mat-list>
-            <div *ngIf="getUsersByRole(Role.AGENT).length === 0" class="empty-role">
-              No agents found
-            </div>
+            @if (getUsersByRole(Role.AGENT).length > 0) {
+              <mat-list>
+                @for (user of getUsersByRole(Role.AGENT); track user.id) {
+                  <mat-list-item (click)="viewUser(user.id)" class="clickable-item">
+                    <mat-icon matListItemIcon>person</mat-icon>
+                    <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
+                    <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            } @else {
+              <div class="empty-role">
+                No agents found
+              </div>
+            }
           </mat-expansion-panel>
 
           <!-- Assistants -->
@@ -124,16 +142,21 @@ import { Role } from '../../../../core/auth/models/user.model';
                 Assistants ({{ getUsersByRole(Role.ASSISTANT).length }})
               </mat-panel-title>
             </mat-expansion-panel-header>
-            <mat-list *ngIf="getUsersByRole(Role.ASSISTANT).length > 0">
-              <mat-list-item *ngFor="let user of getUsersByRole(Role.ASSISTANT)" (click)="viewUser(user.id)" class="clickable-item">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
-                <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
-              </mat-list-item>
-            </mat-list>
-            <div *ngIf="getUsersByRole(Role.ASSISTANT).length === 0" class="empty-role">
-              No assistants found
-            </div>
+            @if (getUsersByRole(Role.ASSISTANT).length > 0) {
+              <mat-list>
+                @for (user of getUsersByRole(Role.ASSISTANT); track user.id) {
+                  <mat-list-item (click)="viewUser(user.id)" class="clickable-item">
+                    <mat-icon matListItemIcon>person</mat-icon>
+                    <div matListItemTitle>{{ user.firstName }} {{ user.lastName }}</div>
+                    <div matListItemLine>{{ user.email }} • {{ user.username }}</div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            } @else {
+              <div class="empty-role">
+                No assistants found
+              </div>
+            }
           </mat-expansion-panel>
         </mat-accordion>
 
@@ -149,7 +172,8 @@ import { Role } from '../../../../core/auth/models/user.model';
             </div>
           </mat-card-content>
         </mat-card>
-      </div>
+        </div>
+      }
     </div>
   `,
   styles: [`

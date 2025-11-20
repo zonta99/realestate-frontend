@@ -36,21 +36,26 @@ import { Role, UserStatus } from '../../../../core/auth/models/user.model';
             <mat-icon>arrow_back</mat-icon>
             Back to List
           </button>
-          <button mat-raised-button color="primary" (click)="editUser()" *ngIf="selectedUser()">
-            <mat-icon>edit</mat-icon>
-            Edit User
-          </button>
+          @if (selectedUser()) {
+            <button mat-raised-button color="primary" (click)="editUser()">
+              <mat-icon>edit</mat-icon>
+              Edit User
+            </button>
+          }
         </div>
       </div>
 
       <!-- Loading -->
-      <div *ngIf="loading()" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Loading user details...</p>
-      </div>
+      @if (loading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading user details...</p>
+        </div>
+      }
 
       <!-- User Details -->
-      <div *ngIf="!loading() && selectedUser()" class="content-grid">
+      @if (!loading() && selectedUser()) {
+        <div class="content-grid">
         <!-- Basic Info Card -->
         <mat-card>
           <mat-card-header>
@@ -133,23 +138,30 @@ import { Role, UserStatus } from '../../../../core/auth/models/user.model';
             <mat-card-title>Subordinates ({{ subordinates().length }})</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <mat-list *ngIf="subordinates().length > 0">
-              <mat-list-item *ngFor="let sub of subordinates()">
-                <mat-icon matListItemIcon>person</mat-icon>
-                <div matListItemTitle>{{ sub.firstName }} {{ sub.lastName }}</div>
-                <div matListItemLine>{{ sub.email }} • {{ getRoleLabel(sub.role) }}</div>
-              </mat-list-item>
-            </mat-list>
-            <div *ngIf="subordinates().length === 0" class="empty-message">
-              <mat-icon>people_outline</mat-icon>
-              <p>This user has no subordinates</p>
-            </div>
+            @if (subordinates().length > 0) {
+              <mat-list>
+                @for (sub of subordinates(); track sub.id) {
+                  <mat-list-item>
+                    <mat-icon matListItemIcon>person</mat-icon>
+                    <div matListItemTitle>{{ sub.firstName }} {{ sub.lastName }}</div>
+                    <div matListItemLine>{{ sub.email }} • {{ getRoleLabel(sub.role) }}</div>
+                  </mat-list-item>
+                }
+              </mat-list>
+            } @else {
+              <div class="empty-message">
+                <mat-icon>people_outline</mat-icon>
+                <p>This user has no subordinates</p>
+              </div>
+            }
           </mat-card-content>
         </mat-card>
-      </div>
+        </div>
+      }
 
       <!-- Error State -->
-      <mat-card *ngIf="error()" class="error-card">
+      @if (error()) {
+        <mat-card class="error-card">
         <mat-card-content>
           <div class="error-content">
             <mat-icon color="warn">error</mat-icon>
@@ -160,7 +172,8 @@ import { Role, UserStatus } from '../../../../core/auth/models/user.model';
             </div>
           </div>
         </mat-card-content>
-      </mat-card>
+        </mat-card>
+      }
     </div>
   `,
   styles: [`

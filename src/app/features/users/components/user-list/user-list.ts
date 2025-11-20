@@ -71,13 +71,16 @@ import { UserResponse } from '../../models/user-api.model';
       </mat-card>
 
       <!-- Loading Spinner -->
-      <div *ngIf="isLoading()" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Loading users...</p>
-      </div>
+      @if (isLoading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading users...</p>
+        </div>
+      }
 
       <!-- Users Table -->
-      <mat-card *ngIf="!isLoading()" class="table-card">
+      @if (!isLoading()) {
+        <mat-card class="table-card">
         <table mat-table [dataSource]="users()" class="users-table">
           <!-- Username Column -->
           <ng-container matColumnDef="username">
@@ -164,30 +167,35 @@ import { UserResponse } from '../../models/user-api.model';
         </table>
 
         <!-- Empty State -->
-        <div *ngIf="users().length === 0" class="empty-state">
-          <mat-icon>people_outline</mat-icon>
-          <h3>No users found</h3>
-          <p>Get started by adding your first user</p>
-          <button mat-raised-button color="primary" (click)="createUser()">
-            <mat-icon>person_add</mat-icon>
-            Add User
-          </button>
-        </div>
+        @if (users().length === 0) {
+          <div class="empty-state">
+            <mat-icon>people_outline</mat-icon>
+            <h3>No users found</h3>
+            <p>Get started by adding your first user</p>
+            <button mat-raised-button color="primary" (click)="createUser()">
+              <mat-icon>person_add</mat-icon>
+              Add User
+            </button>
+          </div>
+        }
 
         <!-- Pagination -->
-        <mat-paginator
-          *ngIf="users().length > 0"
-          [length]="pagination().totalElements"
-          [pageSize]="pagination().pageSize"
-          [pageIndex]="pagination().currentPage"
-          [pageSizeOptions]="[10, 20, 50, 100]"
-          (page)="onPageChange($event)"
-          aria-label="Select page">
-        </mat-paginator>
-      </mat-card>
+        @if (users().length > 0) {
+          <mat-paginator
+            [length]="pagination().totalElements"
+            [pageSize]="pagination().pageSize"
+            [pageIndex]="pagination().currentPage"
+            [pageSizeOptions]="[10, 20, 50, 100]"
+            (page)="onPageChange($event)"
+            aria-label="Select page">
+          </mat-paginator>
+        }
+        </mat-card>
+      }
 
       <!-- Error State -->
-      <mat-card *ngIf="error()" class="error-card">
+      @if (error()) {
+        <mat-card class="error-card">
         <mat-card-content>
           <div class="error-content">
             <mat-icon color="warn">error</mat-icon>
@@ -198,7 +206,8 @@ import { UserResponse } from '../../models/user-api.model';
             </div>
           </div>
         </mat-card-content>
-      </mat-card>
+        </mat-card>
+      }
     </div>
   `,
   styles: [`
